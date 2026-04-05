@@ -1,0 +1,1 @@
+export { EchoLogo } from './echoLogo';
