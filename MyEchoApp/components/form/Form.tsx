@@ -2,6 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { Button } from "../common/Button";
+
 type FormProps = {
   formTitle: string;
   formDescription?: string;
@@ -83,17 +85,15 @@ export default function Form({
           </Pressable>
         ) : null}
 
-        {submitLabel ? (
-          <Pressable
-            className={`rounded-2xl px-6 py-4 ${
-              submitDisabled ? "bg-[#9BC4AB]" : "bg-[#2F8B3A]"
-            }`}
-            disabled={submitDisabled}
-            onPress={onSubmit}
-          >
-            <Text className="text-center text-[17px] font-bold text-white">{submitLabel}</Text>
-          </Pressable>
-        ) : null}
+      {submitLabel ? (
+        <Button
+          label={submitLabel}
+          onPress={onSubmit}
+          disabled={submitDisabled}
+          className="min-h-[60px] rounded-2xl"
+          textClassName="text-[17px]"
+        />
+      ) : null}
 
         {footer ? <View>{footer}</View> : null}
       </View>

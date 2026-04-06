@@ -48,6 +48,31 @@ export type UpdateWalletAddressRequestDto = {
   walletAddress: string;
 };
 
+export type AddressRequestDto = {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  number: number | null;
+  countryCode: string;
+  neighborhood: string;
+};
+
+export type BaseSignupRequestDto = {
+  name: string;
+  email: string;
+  password: string;
+  walletAddress: string;
+  taxId: string;
+  address: AddressRequestDto;
+  role: number;
+};
+
+export type NgoSignupRequestDto = BaseSignupRequestDto;
+export type DonorSignupRequestDto = BaseSignupRequestDto;
+
+export type SignupRequestDto = NgoSignupRequestDto | DonorSignupRequestDto;
+
 export type GoalTypeDto = {
   id: Uuid;
   name: string;

@@ -38,10 +38,12 @@ type RequestOptions<TBody extends RequestBody = RequestBody> = {
 };
 
 export type ApiServiceOptions = {
-  baseUrl: string;
+  baseUrl?: string;
   getAccessToken?: () => string | null | undefined | Promise<string | null | undefined>;
   defaultHeaders?: Record<string, string>;
 };
+
+const DEFAULT_API_BASE_URL = "http://localhost:5087";
 
 export class ApiServiceError extends Error {
   status: number;
@@ -63,7 +65,7 @@ export class ApiService {
   private readonly defaultHeaders: Record<string, string>;
 
   constructor({ baseUrl, getAccessToken, defaultHeaders }: ApiServiceOptions) {
-    this.baseUrl = baseUrl.replace(/\/+$/, "");
+    this.baseUrl = (baseUrl ?? DEFAULT_API_BASE_URL).replace(/\/+$/, "");
     this.getAccessToken = getAccessToken;
     this.defaultHeaders = defaultHeaders ?? {};
   }
@@ -352,9 +354,19 @@ export class ApiService {
     options: RequestOptions<TBody>,
   ): Promise<ApiResult<TResponse>> {
     const response = await this.fetchRaw(options);
-    const payload = (await response.json()) as ApiResult<TResponse>;
+    const rawPayload = await this.parseJsonSafely(response);
+    const payload = rawPayload as ApiResult<TResponse>;
 
-    if (!response.ok || !payload.success) {
+    if (!response.ok) {
+      throw new ApiServiceError(
+        this.extractErrorMessage(rawPayload, response.status),
+        response.status,
+        this.extractErrorCode(rawPayload),
+        this.extractTimestamp(rawPayload),
+      );
+    }
+
+    if (!payload.success) {
       throw new ApiServiceError(
         payload.error ?? `Request failed with status ${response.status}`,
         response.status,
@@ -389,20 +401,13 @@ export class ApiService {
     const response = await this.fetchRaw(options);
 
     if (!response.ok) {
-      let errorMessage = `Request failed with status ${response.status}`;
-      let errorCode: string | null = null;
-      let timestamp: string | null = null;
-
-      try {
-        const payload = (await response.json()) as ApiResult<unknown>;
-        errorMessage = payload.error ?? errorMessage;
-        errorCode = payload.errorCode;
-        timestamp = payload.timestamp;
-      } catch {
-        // Some no-content endpoints may not return JSON on failure.
-      }
-
-      throw new ApiServiceError(errorMessage, response.status, errorCode, timestamp);
+      const payload = await this.parseJsonSafely(response);
+      throw new ApiServiceError(
+        this.extractErrorMessage(payload, response.status),
+        response.status,
+        this.extractErrorCode(payload),
+        this.extractTimestamp(payload),
+      );
     }
   }
 
@@ -469,5 +474,65 @@ export class ApiService {
     }
 
     return JSON.stringify(body);
+  }
+
+  private async parseJsonSafely(response: Response): Promise<unknown> {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  private extractErrorMessage(payload: unknown, status: number): string {
+    if (!payload || typeof payload !== "object") {
+      return `Request failed with status ${status}`;
+    }
+
+    const apiPayload = payload as Partial<ApiResult<unknown>>;
+    if (typeof apiPayload.error === "string" && apiPayload.error.length > 0) {
+      return apiPayload.error;
+    }
+
+    const problemPayload = payload as {
+      title?: unknown;
+      errors?: Record<string, string[]>;
+    };
+
+    if (problemPayload.errors && typeof problemPayload.errors === "object") {
+      const validationErrors = Object.entries(problemPayload.errors)
+        .flatMap(([field, messages]) =>
+          Array.isArray(messages) ? messages.map((message) => `${field}: ${message}`) : [],
+        )
+        .join("\n");
+
+      if (validationErrors.length > 0) {
+        return validationErrors;
+      }
+    }
+
+    if (typeof problemPayload.title === "string" && problemPayload.title.length > 0) {
+      return problemPayload.title;
+    }
+
+    return `Request failed with status ${status}`;
+  }
+
+  private extractErrorCode(payload: unknown): string | null {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+
+    const apiPayload = payload as Partial<ApiResult<unknown>>;
+    return typeof apiPayload.errorCode === "string" ? apiPayload.errorCode : null;
+  }
+
+  private extractTimestamp(payload: unknown): string | null {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+
+    const apiPayload = payload as Partial<ApiResult<unknown>>;
+    return typeof apiPayload.timestamp === "string" ? apiPayload.timestamp : null;
   }
 }

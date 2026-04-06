@@ -1,5 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 const ECFDF5CC = "#ECFDF5CC";
+const BUTTON_GRADIENT_START = "#206223";
+const BUTTON_GRADIENT_END = "#3A7B3A";
 
 module.exports = {
   content: [
@@ -13,7 +15,11 @@ module.exports = {
       colors: {
         headerMint: ECFDF5CC,
         echoDarkGreen: "#064E3B",
-        bgStandard: "##f8faf9"
+        bgStandard: "#F8FAF9",
+        buttonGradientStart: BUTTON_GRADIENT_START,
+        buttonGradientEnd: BUTTON_GRADIENT_END,
+        buttonSurface: "#F6F7F6",
+        buttonDark: "#303030",
       },
     },
   },
