@@ -8,7 +8,7 @@ type RoleCardProps = {
 }
 export const RoleCard = ({ role, onPress }: RoleCardProps) => {
     const isNgo = role === RoleEnum.NGO;
-    const ngoText = "Register your organization, raise funds, and demonstrate your transparency.";
+    const ngoText = "Create campaigns, raise funds, and change the world.";
     const donorText = "Support verified causes and follow your impact in real time.";
     const iconBackgroundClass = isNgo ? "bg-[#DDE4FF]" : "bg-[#A7F3A0]";
     const iconColor = isNgo ? "#0F4AA1" : "#166534";

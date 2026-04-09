@@ -4,11 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { LoginHeader } from '../login/loginHeader';
+import { Header, type HeaderVariant } from './Header';
 
 type AppLayoutProps = {
   children: ReactNode;
-  headerVariant?: 'logo-left' | 'logo-middle';
+  headerVariant?: HeaderVariant;
   withHeader?: boolean;
 };
 
@@ -20,7 +20,7 @@ export function AppLayout({
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-bgStandard">
       <StatusBar style="dark" />
-      {withHeader ? <LoginHeader variant={headerVariant} /> : null}
+      {withHeader ? <Header variant={headerVariant} /> : null}
       <View className="flex-1 px-6 py-8">
         <View className="flex-1 w-full max-w-md self-center">{children}</View>
       </View>

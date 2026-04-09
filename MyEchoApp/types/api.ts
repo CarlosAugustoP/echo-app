@@ -31,6 +31,10 @@ export type TaxIdDto = {
   isCnpj: boolean;
 };
 
+export type ImageUrlDto = {
+  url: string;
+};
+
 export type UserDto = {
   id: Uuid;
   name: string;
@@ -38,6 +42,7 @@ export type UserDto = {
   walletAddress: string;
   taxId: TaxIdDto;
   role: UserRoleCode;
+  profilePicture: ImageUrlDto | null;
 };
 
 export type EchoAmountResponseDto = {
@@ -104,6 +109,7 @@ export type ProjectHeaderDto = {
   description: string;
   createdAt: IsoDateTimeString;
   mainImage: string;
+  progress: DecimalStringOrNumber;
 };
 
 export type ProjectBlogPostDto = {
@@ -121,6 +127,7 @@ export type ProjectBlogPostHeaderDto = {
   headerImage: string | null;
   title: string;
   createdAt: IsoDateTimeString;
+  first100CharsOfContent: string;
 };
 
 export type DonationDto = {
