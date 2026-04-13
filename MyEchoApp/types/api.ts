@@ -103,6 +103,8 @@ export type ProjectDto = {
   mainImage: string | null;
   images: string[];
   progress: DecimalStringOrNumber;
+  createdByName: string;
+  createdById : Uuid;
 };
 
 export type ProjectHeaderDto = {

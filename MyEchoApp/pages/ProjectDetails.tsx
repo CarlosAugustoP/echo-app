@@ -5,6 +5,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Button } from "../components/common/Button";
 import { AppLayout } from "../components/layout/AppLayout";
 import { MilestoneCard } from "../components/project-details/MilestoneCard";
+import { ProjectImageCarousel } from "../components/project-details/ProjectImageCarousel";
 import { ProjectUpdateCard } from "../components/project-details/ProjectUpdateCard";
 import { SectionCard } from "../components/project-details/SectionCard";
 import {
@@ -63,6 +64,8 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
   const currentAmount = useMemo(() => sumGoalAmounts(goals, "currentAmount"), [goals]);
   const totalProgress = normalizeProgress(currentAmount, targetAmount);
   const mainImageUrl = normalizeImageUrl(project?.mainImage);
+  const galleryImages = [project?.mainImage, ...(project?.images ?? [])];
+  const hasGalleryImages = galleryImages.some((image) => Boolean(normalizeImageUrl(image)));
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">
@@ -86,6 +89,9 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
               </Text>
               
             </View>
+            <Text>
+                {project?.createdByName}
+              </Text>
           </View>
 
           <View className="mt-10 h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF6EE]">
@@ -133,7 +139,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
         ) : null}
 
         <View className="gap-3">
-          <Text className="text-[30px] font-semibold leading-8 text-[#202124]">O protocolo de Transparencia</Text>
+          <Text className="text-[30px] font-semibold leading-8 text-[#202124]">Apoie a causa</Text>
           <Text className="text-[14px] leading-6 text-[#667085]">{project?.description?.trim() || " "}</Text>
         </View>
 
@@ -145,22 +151,26 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
             <SectionCard />
           )}
         </View>
+       
+        {hasGalleryImages && (
+          <View className="gap-3">
+            <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Observe seu impacto em ação</Text>
+            <ProjectImageCarousel images={galleryImages} />
+            <Button
+              label="Doar agora"
+              className="min-h-[60px] rounded-[18px]"
+              textClassName="text-[17px]"
+              rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}
+            />
+          </View>
+        )}
 
-        <View className="gap-3">
-          <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Seu impacto em acao</Text>
-          {blogPosts.length > 0 ? <ProjectUpdateCard blogPost={blogPosts[0]} /> : <SectionCard />}
-        </View>
-
-        <View className="gap-3">
-          <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Faca parte desta historia.</Text>
-          <SectionCard description=" " />
-          <Button
-            label="Doar agora"
-            className="min-h-[60px] rounded-[18px]"
-            textClassName="text-[17px]"
-            rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}
-          />
-        </View>
+        {blogPosts.length > 0 && (
+          <View className="gap-3">
+            <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Faça parte dessa história</Text>
+            {blogPosts.length > 0 ? <ProjectUpdateCard blogPost={blogPosts[0]} /> : <SectionCard />}
+          </View>
+        )}
       </ScrollView>
     </AppLayout>
   );
