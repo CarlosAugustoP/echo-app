@@ -90,6 +90,7 @@ export type GoalDto = {
   targetAmount: DecimalStringOrNumber;
   currentAmount: DecimalStringOrNumber;
   goalType: GoalTypeDto;
+  progress: DecimalStringOrNumber;
 };
 
 export type ProjectDto = {
@@ -101,6 +102,7 @@ export type ProjectDto = {
   smartContractAddress: string;
   mainImage: string | null;
   images: string[];
+  progress: DecimalStringOrNumber;
 };
 
 export type ProjectHeaderDto = {

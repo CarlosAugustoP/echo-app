@@ -14,7 +14,7 @@ import { clearAccessToken } from "../services/authStorage";
 import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
 import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDto } from "../types/api";
 
-const defaultBlogImage = require("../assets/gandhi.png");
+const defaultBlogImage = require("../assets/splash-icon.png");
 
 const impactStats = [
   { label: "LIVES IMPACTED", value: "50", helper: "People" },
@@ -97,6 +97,11 @@ function normalizeProgress(progress: number) {
   return Math.max(0, Math.min(100, Math.round(normalizedValue)));
 }
 
+function normalizeImageUrl(imageUrl?: string | null) {
+  const trimmedImageUrl = imageUrl?.trim();
+  return trimmedImageUrl ? trimmedImageUrl : null;
+}
+
 function buildProjectCards(
   apiProjects: readonly ProjectHeaderDto[],
   fallbackProjects: readonly ProjectData[],
@@ -111,8 +116,9 @@ function buildProjectCards(
 
     return {
       ...fallback,
+      id: project.id,
       title: project.title,
-      imageUrl: project.mainImage,
+      imageUrl: normalizeImageUrl(project.mainImage),
       progress: normalizedProgress,
       progressLabel: `${normalizedProgress}% reached`,
     };
@@ -221,7 +227,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         if (blogPost) {
           setRecommendedBlogPost({
             title: blogPost.title,
-            imageUrl: blogPost.headerImage,
+            imageUrl: normalizeImageUrl(blogPost.headerImage),
             publishedLabel: formatRelativeTime(blogPost.createdAt),
             description: blogPost.first100CharsOfContent || fallbackBlogPost.description,
           });
@@ -242,10 +248,18 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
     navigation.replace("Signin");
   };
 
+  const handleOpenProject = (project: ProjectData) => {
+    if (!project.id) {
+      return;
+    }
+
+    navigation.navigate("ProjectDetails", { projectId: project.id });
+  };
+
   const firstName = currentUser?.name?.split(" ")[0] ?? "Carlos";
 
   return (
-    <AppLayout headerVariant="logged-in">
+    <AppLayout headerVariant="logged-in" authFooterTab="inicio">
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 pb-10"
@@ -280,9 +294,17 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
           />
         </View>
 
-        <ProjectCarousel title="Featured projects" projects={featuredProjects} />
+        <ProjectCarousel
+          title="Featured projects"
+          projects={featuredProjects}
+          onProjectPress={handleOpenProject}
+        />
 
-        <ProjectCarousel title="Projects for you" projects={recommendedProjects} />
+        <ProjectCarousel
+          title="Projects for you"
+          projects={recommendedProjects}
+          onProjectPress={handleOpenProject}
+        />
 
         <View className="gap-4 rounded-[24px] border border-[#E7ECE8] bg-white px-4 py-4">
           <View className="flex-row items-center justify-between">

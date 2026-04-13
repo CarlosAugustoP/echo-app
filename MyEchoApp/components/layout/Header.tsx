@@ -34,7 +34,7 @@ function ProfileAvatar() {
 export function Header({ variant }: HeaderProps) {
   if (variant === "logged-in") {
     return (
-      <View className="w-full flex-row items-center justify-between bg-[#EEF8EE] px-4 py-5">
+      <View className="w-full flex-row items-center justify-between bg-[#F8FAF9] px-4 py-5">
         <View className="flex-row items-center gap-3">
           <ProfileAvatar />
           <Logo />
