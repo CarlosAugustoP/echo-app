@@ -5,27 +5,35 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Button } from "../components/common/Button";
 import { AppLayout } from "../components/layout/AppLayout";
 import { MilestoneCard } from "../components/project-details/MilestoneCard";
+import { NgoInfoCard } from "../components/project-details/NgoInfoCard";
 import { ProjectImageCarousel } from "../components/project-details/ProjectImageCarousel";
 import { ProjectUpdateCard } from "../components/project-details/ProjectUpdateCard";
 import { SectionCard } from "../components/project-details/SectionCard";
+import { TransparencyProtocolDropdown } from "../components/project-details/TransparencyProtocolDropdown";
 import {
   defaultProjectImage,
-  formatCurrency,
   normalizeImageUrl,
   normalizeProgress,
   sumGoalAmounts,
 } from "../components/project-details/projectDetailsUtils";
 import { ProjectDetailsScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import type { ProjectBlogPostHeaderDto, ProjectDto } from "../types/api";
+import type { ProjectBlogPostHeaderDto, ProjectDto, UserDto } from "../types/api";
 
 export default function ProjectDetailsPage({ navigation, route }: ProjectDetailsScreenProps) {
   const [project, setProject] = useState<ProjectDto | null>(null);
+  const [manager, setManager] = useState<UserDto | null>(null);
   const [blogPosts, setBlogPosts] = useState<ProjectBlogPostHeaderDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
 
   useEffect(() => {
+    setIsDescriptionExpanded(false);
+    setIsDescriptionTruncated(false);
+    setManager(null);
+
     let isMounted = true;
 
     const loadProject = async () => {
@@ -36,9 +44,17 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
           apiClient.getProjectById(route.params.projectId),
           apiClient.getBlogPosts(route.params.projectId, { pageSize: 3 }),
         ]);
+        let managerResult: UserDto | null = null;
+
+        try {
+          managerResult = await apiClient.getUserById(projectResult.managerId);
+        } catch {
+          managerResult = null;
+        }
 
         if (isMounted) {
           setProject(projectResult);
+          setManager(managerResult);
           setBlogPosts(blogPostsResult.items);
         }
       } catch (error) {
@@ -62,10 +78,21 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
   const goals = project?.goals ?? [];
   const targetAmount = useMemo(() => sumGoalAmounts(goals, "targetAmount"), [goals]);
   const currentAmount = useMemo(() => sumGoalAmounts(goals, "currentAmount"), [goals]);
-  const totalProgress = normalizeProgress(currentAmount, targetAmount);
+  const totalProgressValue = Number(project?.progress);
+  const totalProgress = Number.isFinite(totalProgressValue)
+    ? Math.max(0, Math.min(100, Math.round(totalProgressValue <= 1 ? totalProgressValue * 100 : totalProgressValue)))
+    : normalizeProgress(currentAmount, targetAmount);
   const mainImageUrl = normalizeImageUrl(project?.mainImage);
   const galleryImages = [project?.mainImage, ...(project?.images ?? [])];
   const hasGalleryImages = galleryImages.some((image) => Boolean(normalizeImageUrl(image)));
+  const projectDescription = project?.description?.trim() || " ";
+  const managerImageUrl = normalizeImageUrl(manager?.profilePicture?.url ?? null);
+  const managerName = manager?.name?.trim() || project?.createdByName?.trim() || " ";
+  const managerDescription =
+    manager?.description?.trim() ||
+    manager?.bio?.trim() ||
+    project?.description?.trim() ||
+    " ";
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">
@@ -90,8 +117,8 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
               
             </View>
             <Text>
-                {project?.createdByName}
-              </Text>
+                Por {project?.createdByName}
+            </Text>
           </View>
 
           <View className="mt-10 h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF6EE]">
@@ -114,14 +141,14 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
           )}
 
           <View className="absolute bottom-4 left-4 right-4 rounded-[18px] bg-white/95 px-4 py-3">
-            <Text className="text-[9px] font-semibold uppercase tracking-[1px] text-[#A0A8B4]">
-              Contribuicao ate agora
+            <Text className="text-[9px] font-normal uppercase tracking-[1px] text-[#94A3B8]">
+              Acumulado at&eacute; agora
             </Text>
-            <View className="mt-2 flex-row items-end justify-between">
+            <View className="mt-2">
               <Text className="text-[30px] font-bold leading-8 text-[#2F7D32]">{totalProgress}%</Text>
-              <Text className="text-[12px] font-semibold text-[#202124]">
-                {currentAmount > 0 ? formatCurrency(currentAmount) : " "}
-              </Text>
+              <View className="mt-3 h-[6px] overflow-hidden rounded-full bg-[#E4E7E5]">
+                <View className="h-full rounded-full bg-[#2F7D32]" style={{ width: `${totalProgress}%` }} />
+              </View>
             </View>
           </View>
         </View>
@@ -138,19 +165,57 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
           </View>
         ) : null}
 
-        <View className="gap-3">
-          <Text className="text-[30px] font-semibold leading-8 text-[#202124]">Apoie a causa</Text>
-          <Text className="text-[14px] leading-6 text-[#667085]">{project?.description?.trim() || " "}</Text>
+        <View className="overflow-hidden rounded-[18px] border border-[#EEF1EB] bg-white px-4 py-6">
+          <Text className="text-[20px] font-semibold leading-6 text-[#202124]">Sobre o projeto</Text>
+          <Text
+            className="mt-[10px] text-[18px] leading-[18px] text-[#525B57]"
+            numberOfLines={isDescriptionExpanded ? undefined : 5}
+            onTextLayout={({ nativeEvent }) => {
+              if (isDescriptionExpanded) {
+                return;
+              }
+
+              setIsDescriptionTruncated(nativeEvent.lines.length > 5);
+            }}
+          >
+            {projectDescription}
+          </Text>
+
+          {isDescriptionTruncated ? (
+            <Pressable
+              className="mt-1 self-end"
+              onPress={() => setIsDescriptionExpanded((currentValue) => !currentValue)}
+              style={({ pressed }) => (pressed ? { opacity: 0.72 } : undefined)}
+            >
+              <Text className="text-[12px] font-semibold leading-[18px] text-[#202124]">
+                {isDescriptionExpanded ? "ver menos" : "ver mais"}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
-        <View className="gap-3">
-          <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Metas do projeto</Text>
-          {goals.length > 0 ? (
-            goals.map((goal) => <MilestoneCard key={goal.id} goal={goal} />)
-          ) : (
-            <SectionCard />
-          )}
+        <View className="overflow-hidden rounded-[18px] border border-[#EEF1EB] bg-white px-4 py-6">
+          <Text className="text-[20px] font-semibold leading-6 text-[#202124]">Metas do projeto</Text>
+
+          <View className="mt-4 gap-3">
+            {goals.length > 0 ? (
+              goals.map((goal, index) => (
+                <MilestoneCard
+                  key={goal.id}
+                  goal={goal}
+                  index={index}
+                  contractAddress={project?.smartContractAddress}
+                />
+              ))
+            ) : (
+              <SectionCard />
+            )}
+          </View>
         </View>
+
+        <TransparencyProtocolDropdown contractAddress={project?.smartContractAddress} />
+
+        <NgoInfoCard name={managerName} description={managerDescription} imageUrl={managerImageUrl} />
        
         {hasGalleryImages && (
           <View className="gap-3">

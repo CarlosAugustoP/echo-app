@@ -1,65 +1,134 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { GoalDto } from "../../types/api";
 import { formatEth, normalizePercentageProgress } from "./projectDetailsUtils";
 
 type MilestoneCardProps = {
   goal: GoalDto;
+  index: number;
+  contractAddress?: string | null;
 };
 
-export function MilestoneCard({ goal }: MilestoneCardProps) {
+function formatMilestoneIndex(index: number) {
+  return String(index + 1).padStart(2, "0");
+}
+
+function shortenContractAddress(contractAddress?: string | null) {
+  const normalizedValue = contractAddress?.trim();
+
+  if (!normalizedValue) {
+    return "0x---";
+  }
+
+  if (normalizedValue.length <= 10) {
+    return normalizedValue;
+  }
+
+  return `${normalizedValue.slice(0, 4)}...${normalizedValue.slice(-3)}`;
+}
+
+function formatEthValue(value: number) {
+  return formatEth(value).replace(" ETH", "");
+}
+
+export function MilestoneCard({ goal, index, contractAddress }: MilestoneCardProps) {
   const progressValue = Number(goal.progress);
   const normalizedProgressValue = Number.isFinite(progressValue) ? progressValue : 0;
-  const goalTypeName = goal.goalType?.name?.trim() || "";
-  const isMoneyGoal = goalTypeName.toUpperCase() === "MONEY";
-  const progressLabel = isMoneyGoal
-    ? formatEth(normalizedProgressValue)
-    : `${normalizePercentageProgress(normalizedProgressValue)}% reached`;
   const progressPercentage = normalizePercentageProgress(normalizedProgressValue);
-  const donationPrompt = isMoneyGoal
-    ? "Ajude a ONG diretamente com quanto você quiser."
-    : progressPercentage < 100
-      ? `Sua doacao ajuda a levar esta meta aos ${100 - progressPercentage}% restantes`
-      : "Meta concluida. Sua doacao pode impulsionar as proximas etapas.";
+  const goalTypeName = goal.goalType?.name?.trim() || "";
+  const goalTypeDescription = goal.goalType?.description?.trim() || "";
+  const isMoneyGoal = goalTypeName.toUpperCase() === "MONEY";
+
+  const targetAmount = Number(goal.targetAmount);
+  const currentAmount = Number(goal.currentAmount);
+  const hasFiniteTarget = Number.isFinite(targetAmount) && targetAmount > 0;
+  const hasFiniteCurrent = Number.isFinite(currentAmount);
+  const isCompleted = progressPercentage >= 100 || (hasFiniteTarget && hasFiniteCurrent && currentAmount >= targetAmount);
+
+  const milestoneLabel = `MILESTONE ${formatMilestoneIndex(index)} • ${isCompleted ? "COMPLETADO" : "EM PROGRESSO"}`;
+  const description = goal?.description?.trim() || goal?.goalType?.description?.trim();
+  const itemLabel = goal.goalType?.description?.trim() || goal.title?.trim() || "Item";
+  const priceReference = goal.costPerUnit ?? (hasFiniteCurrent && currentAmount > 0 ? currentAmount : normalizedProgressValue);
+  const priceValue = Number(priceReference);
+  const displayPrice = Number.isFinite(priceValue) ? formatEthValue(priceValue) : "0.00";
+  const contractLabel = `BLOCKCHAIN VERIFICADA: ${shortenContractAddress(contractAddress)}`;
+
+  const cardClassName = isCompleted
+    ? "overflow-hidden rounded-[24px] bg-[#6E8F89]"
+    : "overflow-hidden rounded-[24px] border border-[#E6E8E3] bg-[#FFFEFC]";
+  const eyebrowClassName = isCompleted
+    ? "text-[11px] font-medium uppercase tracking-[2px] text-[#E4ECE7]"
+    : "text-[11px] font-medium uppercase tracking-[2px] text-[#2E7D32]";
+  const titleClassName = isCompleted
+    ? "mt-2 text-[15px] font-semibold leading-5 text-white"
+    : "mt-3 text-[25px] font-semibold leading-[35px] text-[#242828]";
+  const descriptionClassName = isCompleted
+    ? "mt-3 text-[18px] font-light leading-[22px] text-[#40493D]"
+    : "mt-4 text-[18px] font-light leading-[22px] text-[#40493D]";
 
   return (
-    <View className="overflow-hidden rounded-[22px] border border-[#D6E7D6] bg-white">
-      <View className="px-4 pb-4 pt-4">
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <Text className="text-[10px] font-semibold uppercase tracking-[1px] text-[#9BA3AF]">
-              {goal.goalType?.name?.trim() || "Milestone"}
-            </Text>
-            <Text className="mt-2 text-[18px] font-semibold leading-6 text-[#202124]">{goal.title?.trim() || " "}</Text>
-          </View>
-          <View className="rounded-full bg-[#EEF6EE] px-3 py-2">
-            <Text className="text-[11px] font-bold uppercase tracking-[0.4px] text-[#2F7D32]">Doe agora</Text>
-          </View>
-        </View>
+    <View className={cardClassName}>
+      <View className="px-7 pb-6 pt-6">
+        <Text className={eyebrowClassName}>{milestoneLabel}</Text>
+        <Text className={titleClassName}>{goal.title?.trim() || " "}</Text>
+        <Text className={descriptionClassName}>{description}</Text>
 
-        <Text className="mt-2 text-[13px] leading-5 text-[#667085]">
-          {goal.goalType?.description?.trim() || " "}
-        </Text>
-
-        <View className="mt-4 rounded-[18px] bg-[#F6FAF6] px-4 py-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-[12px] font-semibold text-[#2F7D32]">{progressLabel}</Text>
+        {!isCompleted ? (
+          <>
             {isMoneyGoal ? (
-              <Text className="text-[12px] font-semibold text-[#202124]">Apoio direto</Text>
-            ) : null}
-          </View>
-          {isMoneyGoal ? null : (
-            <View className="mt-3 h-2 overflow-hidden rounded-full bg-[#E4E7E5]">
-              <View className="h-full rounded-full bg-[#2F7D32]" style={{ width: `${progressPercentage}%` }} />
-            </View>
-          )}
-        </View>
-      </View>
+              <View className="mt-8 overflow-hidden rounded-[26px] border border-[#DCE6FA] bg-[#F5F8FF]">
+                <View className="px-5 py-5">
+                  <View className="flex-row items-start justify-between gap-4">
+                    <View className="flex-1">
+                      <Text className="text-[11px] font-semibold uppercase tracking-[1.8px] text-[#5975C2]">
+                        Aporte flexivel em ETH
+                      </Text>
+                      <Text className="mt-3 text-[34px] font-semibold leading-[36px] text-[#224488]">Ξ {displayPrice}</Text>
+                      <Text className="mt-3 text-[14px] leading-[20px] text-[#5B6E97]">
+                        Essa etapa aceita contribuicoes abertas. Voce escolhe o valor e injeta liquidez direto na execucao da meta.
+                      </Text>
+                    </View>
 
-      <View className="flex-row items-center justify-between bg-[#206223] px-4 py-3">
-        <Text className="flex-1 text-[13px] font-medium leading-5 text-white">{donationPrompt}</Text>
-        <MaterialCommunityIcons name="arrow-right-circle" size={20} color="#FFFFFF" />
+                    <View className="rounded-[18px] bg-white px-4 py-4">
+                      <MaterialCommunityIcons name="ethereum" size={28} color="#315FCB" />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View className="mt-8 rounded-[2px] bg-[#F8F9F6] px-4 py-5">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-[16px] font-semibold text-[#414846]">Tipo de item</Text>
+                  <Text className="text-[16px] font-semibold text-[#414846]">Preco por un.</Text>
+                </View>
+
+                <View className="mt-6 flex-row items-start justify-between gap-4">
+                  <Text className="flex-1 text-[16px] leading-[24px] text-[#86908A]">{itemLabel}</Text>
+                  <View className="items-end">
+                    <Text className="text-[25px] font-normal leading-[30px] text-[#2B5BB5]">Ξ {displayPrice}</Text>
+                    <Text className="mt-1 text-[10px] text-[#8A918D]">{progressPercentage}% concluido</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <Pressable
+              className="mt-8 overflow-hidden rounded-[20px] border border-[#D9F0D8] bg-[#2E7D32] shadow-sm"
+              style={({ pressed }) => (pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : undefined)}
+            >
+              <View className="min-h-[94px] flex-row items-center justify-center gap-3 px-1 py-1">
+                <Text className="text-[23px] font-semibold text-white">Ir para doacao</Text>
+                <MaterialCommunityIcons name="hand-heart-outline" size={32} color="#FFFFFF" />
+              </View>
+            </Pressable>
+
+            <View className="mt-8 flex-row items-center justify-center gap-2">
+              <MaterialCommunityIcons name="check-decagram-outline" size={14} color="#315FCB" />
+              <Text className="text-[9px] font-medium tracking-[2px] text-[#2B5BB5]">{contractLabel}</Text>
+            </View>
+          </>
+        ) : null}
       </View>
     </View>
   );

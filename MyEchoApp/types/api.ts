@@ -43,6 +43,8 @@ export type UserDto = {
   taxId: TaxIdDto;
   role: UserRoleCode;
   profilePicture: ImageUrlDto | null;
+  description?: string | null;
+  bio?: string | null;
 };
 
 export type EchoAmountResponseDto = {
@@ -87,10 +89,12 @@ export type GoalTypeDto = {
 export type GoalDto = {
   id: Uuid;
   title: string;
+  description:string;
   targetAmount: DecimalStringOrNumber;
   currentAmount: DecimalStringOrNumber;
   goalType: GoalTypeDto;
   progress: DecimalStringOrNumber;
+  costPerUnit: number | null;
 };
 
 export type ProjectDto = {

@@ -107,6 +107,10 @@ export class ApiService {
     });
   }
 
+  async getUserById(id: Uuid) {
+    return this.request<UserDto>({ path: `/api/user-profile/${id}` });
+  }
+
   async getProjectsByManager(managerId: Uuid, query?: QueryParams) {
     return this.request<PaginatedList<ProjectDto>>({
       path: `/api/projects/manager/${managerId}`,
