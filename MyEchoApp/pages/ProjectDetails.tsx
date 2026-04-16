@@ -18,7 +18,7 @@ import {
 } from "../components/project-details/projectDetailsUtils";
 import { ProjectDetailsScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import type { ProjectBlogPostHeaderDto, ProjectDto, UserDto } from "../types/api";
+import type { GoalDto, ProjectBlogPostHeaderDto, ProjectDto, UserDto } from "../types/api";
 
 export default function ProjectDetailsPage({ navigation, route }: ProjectDetailsScreenProps) {
   const [project, setProject] = useState<ProjectDto | null>(null);
@@ -93,6 +93,39 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
     manager?.bio?.trim() ||
     project?.description?.trim() ||
     " ";
+
+  const handleOpenDonation = (goal: GoalDto, goalIndex: number) => {
+    navigation.navigate("DonationDetails", {
+      projectId: project?.id ?? route.params.projectId,
+      projectTitle: project?.title?.trim() || "Projeto",
+      goal,
+      goalIndex,
+      smartContractAddress: project?.smartContractAddress ?? null,
+    });
+  };
+
+  const handleOpenPrimaryDonation = () => {
+    const firstOpenGoalIndex = goals.findIndex((goal) => {
+      const progressValue = Number(goal.progress);
+      const normalizedProgress = Number.isFinite(progressValue)
+        ? Math.max(0, Math.min(100, Math.round(progressValue <= 1 ? progressValue * 100 : progressValue)))
+        : 0;
+      const targetAmountValue = Number(goal.targetAmount);
+      const currentAmountValue = Number(goal.currentAmount);
+      const hasFiniteTarget = Number.isFinite(targetAmountValue) && targetAmountValue > 0;
+      const hasFiniteCurrent = Number.isFinite(currentAmountValue);
+      const isCompleted =
+        normalizedProgress >= 100 || (hasFiniteTarget && hasFiniteCurrent && currentAmountValue >= targetAmountValue);
+
+      return !isCompleted;
+    });
+
+    if (firstOpenGoalIndex < 0) {
+      return;
+    }
+
+    handleOpenDonation(goals[firstOpenGoalIndex], firstOpenGoalIndex);
+  };
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">
@@ -205,6 +238,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
                   goal={goal}
                   index={index}
                   contractAddress={project?.smartContractAddress}
+                  onDonatePress={() => handleOpenDonation(goal, index)}
                 />
               ))
             ) : (
@@ -223,6 +257,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
             <ProjectImageCarousel images={galleryImages} />
             <Button
               label="Doar agora"
+              onPress={handleOpenPrimaryDonation}
               className="min-h-[60px] rounded-[18px]"
               textClassName="text-[17px]"
               rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}

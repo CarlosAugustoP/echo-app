@@ -8,6 +8,7 @@ type MilestoneCardProps = {
   goal: GoalDto;
   index: number;
   contractAddress?: string | null;
+  onDonatePress?: () => void;
 };
 
 function formatMilestoneIndex(index: number) {
@@ -32,7 +33,7 @@ function formatEthValue(value: number) {
   return formatEth(value).replace(" ETH", "");
 }
 
-export function MilestoneCard({ goal, index, contractAddress }: MilestoneCardProps) {
+export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: MilestoneCardProps) {
   const progressValue = Number(goal.progress);
   const normalizedProgressValue = Number.isFinite(progressValue) ? progressValue : 0;
   const progressPercentage = normalizePercentageProgress(normalizedProgressValue);
@@ -69,7 +70,7 @@ export function MilestoneCard({ goal, index, contractAddress }: MilestoneCardPro
 
   return (
     <View className={cardClassName}>
-      <View className="px-7 pb-6 pt-6">
+      <View className="px-5 pb-5 pt-5">
         <Text className={eyebrowClassName}>{milestoneLabel}</Text>
         <Text className={titleClassName}>{goal.title?.trim() || " "}</Text>
         <Text className={descriptionClassName}>{description}</Text>
@@ -86,7 +87,7 @@ export function MilestoneCard({ goal, index, contractAddress }: MilestoneCardPro
                       </Text>
                       <Text className="mt-3 text-[34px] font-semibold leading-[36px] text-[#224488]">Ξ {displayPrice}</Text>
                       <Text className="mt-3 text-[14px] leading-[20px] text-[#5B6E97]">
-                        Essa etapa aceita contribuicoes abertas. Voce escolhe o valor e injeta liquidez direto na execucao da meta.
+                        Essa etapa aceita contribuicoes abertas. Voce escolhe o valor e injeta liquidez direto para a ONG.
                       </Text>
                     </View>
 
@@ -114,7 +115,9 @@ export function MilestoneCard({ goal, index, contractAddress }: MilestoneCardPro
             )}
 
             <Pressable
+              disabled={!onDonatePress}
               className="mt-8 overflow-hidden rounded-[20px] border border-[#D9F0D8] bg-[#2E7D32] shadow-sm"
+              onPress={onDonatePress}
               style={({ pressed }) => (pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : undefined)}
             >
               <View className="min-h-[94px] flex-row items-center justify-center gap-3 px-1 py-1">

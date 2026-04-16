@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { RoleEnum } from "../components/signup/roleEnum";
-import type { Uuid } from "../types/api";
+import type { GoalDto, Uuid } from "../types/api";
 
 export type RootStackParamList = {
   Signup: undefined;
@@ -10,6 +10,13 @@ export type RootStackParamList = {
   Signin: undefined;
   AppHome: undefined;
   ProjectDetails: { projectId: Uuid };
+  DonationDetails: {
+    projectId: Uuid;
+    projectTitle: string;
+    goal: GoalDto;
+    goalIndex: number;
+    smartContractAddress?: string | null;
+  };
 };
 
 export type SignupScreenProps = NativeStackScreenProps<RootStackParamList, "Signup">;
@@ -18,3 +25,4 @@ export type SignupCompletedScreenProps = NativeStackScreenProps<RootStackParamLi
 export type SigninScreenProps = NativeStackScreenProps<RootStackParamList, "Signin">;
 export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "AppHome">;
 export type ProjectDetailsScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectDetails">;
+export type DonationDetailsScreenProps = NativeStackScreenProps<RootStackParamList, "DonationDetails">;

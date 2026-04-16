@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppHomePage from './pages/AppHome';
+import DonationDetailsPage from './pages/DonationDetails';
 import ProjectDetailsPage from './pages/ProjectDetails';
 import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
@@ -32,6 +33,7 @@ export default function App() {
           <Stack.Screen name="Signin" component={SigninPage} />
           <Stack.Screen name="AppHome" component={AppHomePage} />
           <Stack.Screen name="ProjectDetails" component={ProjectDetailsPage} />
+          <Stack.Screen name="DonationDetails" component={DonationDetailsPage} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
