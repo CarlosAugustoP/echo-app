@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Alert, Platform, Pressable, Text, View } from "react-native";
+
+import type { RootStackParamList } from "../../navigation/types";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type AuthFooterTab = "inicio" | "historico" | "dashboard" | "perfil";
 
@@ -48,6 +52,50 @@ const footerItems: Array<{
 ];
 
 export function AuthFooter({ activeTab }: AuthFooterProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
+
+  const showUnavailableMessage = (label: string) => {
+    const title = `${label} em breve`;
+    const message = `A navegação para ${label.toLowerCase()} ainda não está disponível nesta versão.`;
+
+    if (Platform.OS === "web") {
+      window.alert(`${title}\n\n${message}`);
+      return;
+    }
+
+    Alert.alert(title, message);
+  };
+
+  const handleTabPress = (tab: AuthFooterTab) => {
+    if (tab === activeTab) {
+      return;
+    }
+
+    if (tab === "inicio") {
+      if (route.name !== "AppHome") {
+        navigation.navigate("AppHome");
+      }
+
+      return;
+    }
+
+    if (tab === "historico") {
+      if (route.name !== "DonationHistory") {
+        navigation.navigate("DonationHistory");
+      }
+
+      return;
+    }
+
+    const labelsByTab: Record<Exclude<AuthFooterTab, "inicio" | "historico">, string> = {
+      dashboard: "Dashboard",
+      perfil: "Perfil",
+    };
+
+    showUnavailableMessage(labelsByTab[tab as keyof typeof labelsByTab]);
+  };
+
   return (
     <View className="bg-transparent px-2 pb-5 pt-3">
       <View className="w-full self-center flex-row items-center justify-between rounded-[28px] bg-white px-3 py-2">
@@ -57,10 +105,11 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
           return (
             <Pressable
               key={item.key}
-              disabled
+              onPress={() => handleTabPress(item.key)}
               className={`min-w-[72px] items-center justify-center rounded-[20px] px-3 py-3 ${
                 isActive ? "bg-[#EEF6EE]" : ""
               }`}
+              style={({ pressed }) => (pressed && !isActive ? { opacity: 0.72 } : undefined)}
             >
               {item.icon(isActive)}
               <Text

@@ -8,7 +8,6 @@ type TransparencyProtocolDropdownProps = {
 
 const transparencyProtocolDescription =
   "Ao contr\u00E1rio das doa\u00E7\u00F5es convencionais, o ECHO utiliza a infraestrutura de \"Living Ledger\". Os fundos n\u00E3o s\u00E3o liberados de imediato; eles ficam protegidos por contratos inteligentes e s\u00E3o transferidos automaticamente e diretamente para um fornecedor de confian\u00E7a, assegurando que a compra de um item resultar\u00E1 exclusivamente naquele mesmo item.";
-
 function buildSepoliaAddressUrl(contractAddress: string) {
   return `https://sepolia.etherscan.io/address/${encodeURIComponent(contractAddress)}`;
 }
@@ -27,7 +26,6 @@ export function TransparencyProtocolDropdown({ contractAddress }: TransparencyPr
     try {
       await Linking.openURL(sepoliaUrl);
     } catch {
-      // Silently ignore if the device can't open the browser.
     }
   };
 

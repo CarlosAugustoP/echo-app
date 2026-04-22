@@ -3,6 +3,7 @@ import type {
   ApiResult,
   ContributionSummaryDto,
   ContributionTotalDto,
+  DonationRequestDto,
   DonationDistributionDto,
   DonationDto,
   DonationEventDto,
@@ -43,7 +44,7 @@ export type ApiServiceOptions = {
   defaultHeaders?: Record<string, string>;
 };
 
-const DEFAULT_API_BASE_URL = "http://localhost:5087";
+const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5087";
 
 export class ApiServiceError extends Error {
   status: number;
@@ -218,8 +219,8 @@ export class ApiService {
     });
   }
 
-  async donate<TBody extends JsonObject>(body: TBody) {
-    return this.request<boolean, TBody>({
+  async donate(body: DonationRequestDto) {
+    return this.request<boolean, DonationRequestDto>({
       method: "POST",
       path: "/api/donations/donate",
       body,

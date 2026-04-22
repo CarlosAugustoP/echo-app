@@ -7,6 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppHomePage from './pages/AppHome';
 import DonationDetailsPage from './pages/DonationDetails';
+import DonationHistoryPage from './pages/DonationHistory';
+import DonationTimelinePage from './pages/DonationTimeline';
 import ProjectDetailsPage from './pages/ProjectDetails';
 import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
@@ -32,6 +34,8 @@ export default function App() {
           <Stack.Screen name="SignupCompleted" component={SignupCompletedPage} />
           <Stack.Screen name="Signin" component={SigninPage} />
           <Stack.Screen name="AppHome" component={AppHomePage} />
+          <Stack.Screen name="DonationHistory" component={DonationHistoryPage} />
+          <Stack.Screen name="DonationTimeline" component={DonationTimelinePage} />
           <Stack.Screen name="ProjectDetails" component={ProjectDetailsPage} />
           <Stack.Screen name="DonationDetails" component={DonationDetailsPage} />
         </Stack.Navigator>

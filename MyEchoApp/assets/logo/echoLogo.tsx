@@ -1,6 +1,9 @@
-import Svg, { Path, type SvgProps } from 'react-native-svg';
+import type { ComponentProps } from "react";
+import Svg, { Path } from "react-native-svg";
 
-export function EchoLogo(props: SvgProps) {
+type EchoLogoProps = ComponentProps<typeof Svg>;
+
+export function EchoLogo(props: EchoLogoProps) {
   return (
     <Svg
       width={19}

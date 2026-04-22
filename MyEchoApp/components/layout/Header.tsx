@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import { Image, Pressable, View } from "react-native";
 
+import type { RootStackParamList } from "../../navigation/types";
 import { useUserStore } from "../../stores/userStore";
 import { Logo } from "../logo/logo";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type HeaderVariant = "logo-left" | "logo-middle" | "logged-in";
 
@@ -32,12 +35,24 @@ function ProfileAvatar() {
 }
 
 export function Header({ variant }: HeaderProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleLogoPress = () => {
+    navigation.navigate("AppHome");
+  };
+
   if (variant === "logged-in") {
     return (
       <View className="w-full flex-row items-center justify-between bg-[#F8FAF9] px-4 py-5">
         <View className="flex-row items-center gap-3">
           <ProfileAvatar />
-          <Logo />
+          <Pressable
+            onPress={handleLogoPress}
+            hitSlop={8}
+            style={({ pressed }) => (pressed ? { opacity: 0.8 } : undefined)}
+          >
+            <Logo />
+          </Pressable>
         </View>
 
         <Pressable
@@ -54,7 +69,9 @@ export function Header({ variant }: HeaderProps) {
 
   return (
     <View className={`w-full flex-row items-center ${logoPosition} bg-headerMint px-4 py-7`}>
-      <Logo />
+      <Pressable onPress={handleLogoPress} hitSlop={8} style={({ pressed }) => (pressed ? { opacity: 0.8 } : undefined)}>
+        <Logo />
+      </Pressable>
     </View>
   );
 }

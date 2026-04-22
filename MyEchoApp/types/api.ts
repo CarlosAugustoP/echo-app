@@ -89,7 +89,7 @@ export type GoalTypeDto = {
 export type GoalDto = {
   id: Uuid;
   title: string;
-  description:string;
+  description: string;
   targetAmount: DecimalStringOrNumber;
   currentAmount: DecimalStringOrNumber;
   goalType: GoalTypeDto;
@@ -143,6 +143,7 @@ export type DonationDto = {
   amount: DecimalStringOrNumber;
   totalCost: DecimalStringOrNumber;
   transactionHash: string;
+  fundsReleaseHash?: string | null;
   status: DonationStatusCode;
   statusDesc: string;
   nameItem: string;
@@ -152,6 +153,14 @@ export type DonationDto = {
   projectName: string;
   projectId: Uuid;
   createdAt: IsoDateTimeString;
+  transferredToVendorId?: Uuid | null;
+};
+
+export type DonationRequestDto = {
+  amount: number;
+  totalAmountETH: number;
+  goalId: Uuid;
+  transactionHash: string;
 };
 
 export type DonationEventDto = {

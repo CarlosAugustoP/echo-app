@@ -1,16 +1,32 @@
 import { useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { Button } from "../components/common/Button";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { AppLayout } from "../components/layout/AppLayout";
-import { DonationDetailsScreenProps } from "../navigation/types";
-import { useUserStore } from "../stores/userStore";
 import { normalizePercentageProgress } from "../components/project-details/projectDetailsUtils";
+import { DonationDetailsScreenProps } from "../navigation/types";
+import { ApiServiceError } from "../services/ApiService";
+import { apiClient } from "../services/apiClient";
+import { sendSepoliaEthDonation } from "../services/donationWallet";
+import { useUserStore } from "../stores/userStore";
+import type { DonationRequestDto } from "../types/api";
 
-const SEPOLIA_CHAIN_ID = "11155111";
 const WEI_DECIMALS = 18n;
 const WEI_FACTOR = 10n ** WEI_DECIMALS;
+const ETHEREUM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+
+type DonationFlowStep = "idle" | "waiting_sync" | "registering" | "success";
 
 function formatMilestoneIndex(index: number) {
   return String(index + 1).padStart(2, "0");
@@ -61,8 +77,13 @@ function formatWeiToEthDisplay(value: bigint) {
   return `${wholePart.toString()}.${normalizedFraction}`;
 }
 
-function buildMetaMaskSendLink(recipientAddress: string, valueWei: bigint) {
-  return `https://metamask.app.link/send/${encodeURIComponent(recipientAddress)}@${SEPOLIA_CHAIN_ID}?value=${valueWei.toString()}`;
+function parseDecimalNumber(value: string) {
+  const parsedValue = Number(sanitizeDecimalString(value));
+  return Number.isFinite(parsedValue) ? parsedValue : 0;
+}
+
+function isMoneyGoalType(goalTypeName?: string | null) {
+  return goalTypeName?.trim().toLowerCase() === "money";
 }
 
 function clampPercentage(value: number) {
@@ -73,11 +94,146 @@ function clampPercentage(value: number) {
   return Math.max(0, Math.min(100, Math.round(value <= 1 ? value * 100 : value)));
 }
 
-export default function DonationDetailsPage({ route }: DonationDetailsScreenProps) {
-  const { goal, goalIndex, smartContractAddress } = route.params;
+function isUserRejectedError(error: unknown) {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const errorCode = "code" in error ? (error as { code?: unknown }).code : undefined;
+  const errorMessage = "message" in error ? String((error as { message?: unknown }).message ?? "") : "";
+
+  return errorCode === 4001 || /user rejected|cancelad|rejeitad/i.test(errorMessage);
+}
+
+function getDonationErrorMessage(error: unknown) {
+  if (isUserRejectedError(error)) {
+    return "A transa\u00E7\u00E3o foi cancelada na carteira.";
+  }
+
+  if (error instanceof ApiServiceError) {
+    return error.message;
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return "N\u00E3o foi poss\u00EDvel concluir a doa\u00E7\u00E3o agora. Tente novamente em instantes.";
+}
+
+function showDonationDialog(
+  title: string,
+  message: string,
+  confirmAction?: {
+    label: string;
+    onPress?: () => void;
+  },
+) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+    confirmAction?.onPress?.();
+    return;
+  }
+
+  Alert.alert(
+    title,
+    message,
+    confirmAction
+      ? [
+          {
+            text: confirmAction.label,
+            onPress: confirmAction.onPress,
+          },
+        ]
+      : undefined,
+  );
+}
+
+function wait(delayInMs: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, delayInMs);
+  });
+}
+
+function waitWithInterval(delayInMs: number) {
+  return new Promise<void>((resolve) => {
+    const intervalId = setInterval(() => {
+      clearInterval(intervalId);
+      resolve();
+    }, delayInMs);
+  });
+}
+
+async function registerDonationWithRetry(payload: DonationRequestDto) {
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const donationRegistered = await apiClient.donate(payload);
+
+      if (!donationRegistered) {
+        throw new Error("A API n\u00E3o confirmou o registro da doa\u00E7\u00E3o.");
+      }
+
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === 2) {
+        break;
+      }
+
+      await wait((attempt + 1) * 1200);
+    }
+  }
+
+  throw lastError ?? new Error("A doa\u00E7\u00E3o n\u00E3o pode ser registrada.");
+}
+
+function getFlowContent(step: DonationFlowStep) {
+  switch (step) {
+    case "waiting_sync":
+      return {
+        badge: "AGUARDANDO REDE",
+        description:
+          "Sua transa\u00E7\u00E3o j\u00E1 foi enviada na Sepolia. Estamos aguardando alguns segundos para sincronizar o hash antes de registrar a doa\u00E7\u00E3o.",
+        headline: "Estamos confirmando sua doa\u00E7\u00E3o",
+        summaryTitle: "Doa\u00E7\u00E3o em valida\u00E7\u00E3o",
+        supporting:
+          "Assim que a rede estabilizar essa transa\u00E7\u00E3o, seguimos automaticamente para o registro da sua contribui\u00E7\u00E3o.",
+      };
+    case "registering":
+      return {
+        badge: "VALIDANDO API",
+        description:
+          "A blockchain j\u00E1 respondeu. Agora estamos confirmando sua doa\u00E7\u00E3o na API da Echo para vincular o recibo ao seu hist\u00F3rico.",
+        headline: "Quase l\u00E1",
+        summaryTitle: "Registrando doa\u00E7\u00E3o",
+        supporting:
+          "Esse passo garante que seu impacto fique vis\u00EDvel no ecossistema Echo com rastreabilidade completa.",
+      };
+    case "success":
+      return {
+        badge: "VERIFICADO",
+        description:
+          "Cada contribui\u00E7\u00E3o \u00E9 registrada no nosso livro-raz\u00E3o, garantindo que o seu impacto chegue de forma transparente e humana.",
+        headline: "Obrigado!",
+        summaryTitle: "Doa\u00E7\u00E3o conclu\u00EDda",
+        supporting: "Seu apoio est\u00E1 transformando realidades no ecossistema Echo.",
+      };
+    default:
+      return null;
+  }
+}
+
+export default function DonationDetailsPage({ navigation, route }: DonationDetailsScreenProps) {
+  const { goal, goalIndex, projectTitle, smartContractAddress } = route.params;
   const { currentUser } = useUserStore();
+
   const [quantity, setQuantity] = useState(1);
-  const [isOpeningWallet, setIsOpeningWallet] = useState(false);
+  const [isSubmittingDonation, setIsSubmittingDonation] = useState(false);
+  const [flowStep, setFlowStep] = useState<DonationFlowStep>("idle");
+  const [lastTransactionHash, setLastTransactionHash] = useState("");
 
   const walletAddress = currentUser?.walletAddress?.trim() || "";
   const goalTypeDescription = goal.goalType?.description?.trim() || "";
@@ -90,6 +246,11 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
   const totalPriceWei = unitPriceWei * BigInt(quantity);
   const unitPriceDisplay = formatWeiToEthDisplay(unitPriceWei);
   const totalPriceDisplay = formatWeiToEthDisplay(totalPriceWei);
+  const totalAmountEth = parseDecimalNumber(totalPriceDisplay);
+  const isMoneyGoal = isMoneyGoalType(goal.goalType?.name);
+  const donationAmount = isMoneyGoal ? totalAmountEth : quantity;
+  const hasValidWalletAddress = ETHEREUM_ADDRESS_REGEX.test(walletAddress);
+  const hasValidContractAddress = ETHEREUM_ADDRESS_REGEX.test(normalizedContractAddress);
 
   const targetAmountValue = Number(goal.targetAmount);
   const currentAmountValue = Number(goal.currentAmount);
@@ -97,7 +258,8 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
   const progressPercentage = normalizePercentageProgress(goalProgress);
   const hasFiniteTarget = Number.isFinite(targetAmountValue) && targetAmountValue > 0;
   const hasFiniteCurrent = Number.isFinite(currentAmountValue);
-  const isCompleted = progressPercentage >= 100 || (hasFiniteTarget && hasFiniteCurrent && currentAmountValue >= targetAmountValue);
+  const isCompleted =
+    progressPercentage >= 100 || (hasFiniteTarget && hasFiniteCurrent && currentAmountValue >= targetAmountValue);
   const milestoneLabel = `MILESTONE ${formatMilestoneIndex(goalIndex)} \u2022 ${isCompleted ? "COMPLETADO" : "EM PROGRESSO"}`;
   const maxQuantity =
     hasFiniteTarget && hasFiniteCurrent && targetAmountValue > currentAmountValue
@@ -105,30 +267,80 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
       : 99;
   const contractLabel = `BLOCKCHAIN VERIFICADA: ${shortenAddress(normalizedContractAddress)}`;
   const walletLabel = walletAddress ? shortenAddress(walletAddress) : "Carteira n\u00E3o encontrada";
+  const donationDisabledReason = !hasValidWalletAddress
+    ? "Atualize sua carteira no perfil com um endere\u00E7o EVM v\u00E1lido para doar."
+    : !hasValidContractAddress
+      ? "Este projeto ainda n\u00E3o possui smart contract v\u00E1lido para receber doa\u00E7\u00F5es."
+      : totalPriceWei <= 0n
+        ? "Essa meta ainda n\u00E3o possui um valor definido para doa\u00E7\u00E3o."
+        : isCompleted
+          ? "Essa meta j\u00E1 foi conclu\u00EDda."
+          : null;
   const canConfirmDonation =
-    walletAddress.length > 0 &&
-    normalizedContractAddress.length > 0 &&
+    hasValidWalletAddress &&
+    hasValidContractAddress &&
     totalPriceWei > 0n &&
     !isCompleted &&
-    !isOpeningWallet;
+    !isSubmittingDonation;
+  const summaryItemLabel = isMoneyGoal ? "Contribui\u00E7\u00E3o direta" : `${quantity}x ${itemLabel}`;
+  const flowContent = getFlowContent(flowStep);
+
+  const handleShareJourney = async () => {
+    try {
+      await Share.share({
+        message: `Acabei de apoiar ${projectTitle} na Echo. Minha contribui\u00E7\u00E3o ficou registrada na Sepolia e no ecossistema Echo.`,
+        title: "Compartilhar jornada",
+      });
+    } catch {
+      showDonationDialog("N\u00E3o foi poss\u00EDvel compartilhar", "Tente novamente em instantes.");
+    }
+  };
 
   const handleConfirmDonation = async () => {
     if (!canConfirmDonation) {
       return;
     }
 
-    const metaMaskUrl = buildMetaMaskSendLink(normalizedContractAddress, totalPriceWei);
+    let transactionHash = "";
 
     try {
-      setIsOpeningWallet(true);
-      await Linking.openURL(metaMaskUrl);
-    } catch {
-      Alert.alert(
-        "N\u00E3o foi poss\u00EDvel abrir o MetaMask",
-        "Verifique se o MetaMask est\u00E1 instalado no dispositivo e tente novamente.",
-      );
+      setIsSubmittingDonation(true);
+
+      const walletResult = await sendSepoliaEthDonation({
+        expectedSenderAddress: walletAddress,
+        recipientAddress: normalizedContractAddress,
+        valueWei: totalPriceWei,
+      });
+
+      transactionHash = walletResult.transactionHash;
+      setLastTransactionHash(transactionHash);
+      setFlowStep("waiting_sync");
+
+      await waitWithInterval(10_000);
+
+      setFlowStep("registering");
+
+      await registerDonationWithRetry({
+        amount: donationAmount,
+        goalId: goal.id,
+        totalAmountETH: totalAmountEth,
+        transactionHash,
+      });
+
+      setFlowStep("success");
+    } catch (error) {
+      setFlowStep("idle");
+
+      if (transactionHash) {
+        showDonationDialog(
+          "Transa\u00E7\u00E3o enviada, mas a doa\u00E7\u00E3o n\u00E3o foi registrada",
+          `O hash ${transactionHash} j\u00E1 foi gerado na carteira, mas a API n\u00E3o confirmou o registro. N\u00E3o envie novamente agora; use esse hash para reconcilia\u00E7\u00E3o.`,
+        );
+      } else {
+        showDonationDialog("N\u00E3o foi poss\u00EDvel concluir a doa\u00E7\u00E3o", getDonationErrorMessage(error));
+      }
     } finally {
-      setIsOpeningWallet(false);
+      setIsSubmittingDonation(false);
     }
   };
 
@@ -139,6 +351,119 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
   const increaseQuantity = () => {
     setQuantity((currentValue) => Math.min(maxQuantity, currentValue + 1));
   };
+
+  if (flowContent) {
+    const isSuccess = flowStep === "success";
+    const statusIcon = isSuccess ? (
+      <Ionicons name="checkmark" size={42} color="#FFFFFF" />
+    ) : (
+      <LoadingSpinner color="#FFFFFF" size="large" className="h-11 w-11 items-center justify-center" />
+    );
+
+    return (
+      <AppLayout headerVariant="logged-in" authFooterTab="inicio">
+        <ScrollView className="flex-1" contentContainerClassName="gap-5 pb-10" showsVerticalScrollIndicator={false}>
+          <View className="items-center pt-1">
+            <View
+              className="h-[108px] w-[108px] items-center justify-center rounded-full bg-[#DDF7D0]"
+              style={{
+                shadowColor: "#8EE26B",
+                shadowOffset: { width: 0, height: 14 },
+                shadowOpacity: 0.34,
+                shadowRadius: 22,
+              }}
+            >
+              <View className="h-[82px] w-[82px] items-center justify-center rounded-full bg-[#2F7D32]">
+                {statusIcon}
+              </View>
+            </View>
+
+            <Text className="mt-5 text-center text-[28px] font-bold leading-8 text-[#2F7D32]">
+              {flowContent.headline}
+            </Text>
+            <Text className="mt-2 max-w-[295px] text-center text-[16px] font-semibold leading-[21px] text-[#202124]">
+              {flowContent.supporting}
+            </Text>
+            <Text className="mt-3 max-w-[304px] text-center text-[13px] leading-[21px] text-[#75817B]">
+              {flowContent.description}
+            </Text>
+
+            <View className="mt-4 flex-row items-center gap-2 rounded-full bg-[#EEF3EE] px-4 py-2">
+              <MaterialCommunityIcons
+                name={isSuccess ? "check-decagram" : "progress-clock"}
+                size={14}
+                color="#2F7D32"
+              />
+              <Text className="text-[10px] font-semibold uppercase tracking-[1.2px] text-[#2F7D32]">
+                {flowContent.badge}
+              </Text>
+            </View>
+          </View>
+
+          <View className="rounded-[22px] bg-[#2F7D32] px-4 py-5">
+            <Text className="text-[16px] font-semibold text-white">{flowContent.summaryTitle}</Text>
+
+            <View className="mt-4 gap-3">
+              <View className="flex-row items-center justify-between gap-4">
+                <Text className="flex-1 text-[12px] leading-5 text-[#E5F6E6]">{summaryItemLabel}</Text>
+                <Text className="text-[12px] font-medium text-[#E5F6E6]">{`\u039E ${totalPriceDisplay}`}</Text>
+              </View>
+
+              <View className="flex-row items-center justify-between gap-4">
+                <Text className="flex-1 text-[12px] leading-5 text-[#E5F6E6]">{shortenAddress(lastTransactionHash)}</Text>
+                <Text className="text-[12px] font-medium text-[#E5F6E6]">{"Tx hash"}</Text>
+              </View>
+
+              <View className="border-t border-white/20 pt-4">
+                <View className="flex-row items-center justify-between gap-4">
+                  <Text className="text-[20px] font-semibold text-white">{"Impacto Total"}</Text>
+                  <Text className="text-[34px] font-semibold leading-9 text-white">{`\u039E ${totalPriceDisplay}`}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View className="rounded-[22px] border border-[#E5EAE4] bg-white px-4 py-4">
+            <Text className="text-[16px] font-semibold text-[#202124]">
+              {isSuccess ? "Seu impacto est\u00E1 em movimento" : "Estamos finalizando seu recibo"}
+            </Text>
+            <Text className="mt-2 text-[13px] leading-[21px] text-[#6F7A75]">
+              {isSuccess
+                ? "Seu recibo j\u00E1 est\u00E1 pronto e vinculado ao hist\u00F3rico da sua conta. Voc\u00EA pode compartilhar essa jornada ou voltar para acompanhar mais projetos."
+                : "Mantenha esta tela aberta por mais alguns segundos. Assim que a API confirmar o registro, mostramos o agradecimento final automaticamente."}
+            </Text>
+            <View className="mt-4 flex-row items-center gap-2">
+              <MaterialCommunityIcons name="check-decagram-outline" size={14} color="#315FCB" />
+              <Text className="text-[9px] font-medium tracking-[1.6px] text-[#315FCB]">{contractLabel}</Text>
+            </View>
+          </View>
+
+          {isSuccess ? (
+            <>
+              <Button
+                label="Compartilhar jornada"
+                onPress={() => {
+                  void handleShareJourney();
+                }}
+                variant="light"
+                className="min-h-[58px] rounded-[18px]"
+                textClassName="text-[16px] text-[#2F7D32]"
+                rightIcon={<Ionicons name="share-social-outline" size={18} color="#2F7D32" />}
+              />
+
+              <Pressable
+                className="items-center py-2"
+                onPress={() => navigation.replace("AppHome")}
+                style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+              >
+                <Text className="text-[13px] font-semibold text-[#315FCB]">{"Ir para Dashboard"}</Text>
+              </Pressable>
+            </>
+          ) : null}
+        </ScrollView>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">
@@ -169,9 +494,7 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
             <Text className="text-[12px] font-semibold text-[#525B57]">{itemLabel}</Text>
 
             <View className="flex-row items-center justify-between gap-4">
-              <Text className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]">
-                {`\u039E ${unitPriceDisplay}`}
-              </Text>
+              <Text className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]">{`\u039E ${unitPriceDisplay}`}</Text>
 
               <View className="flex-row items-center rounded-[16px] border border-[#E6EBE7] bg-[#FBFCFB] px-2 py-1">
                 <Pressable
@@ -254,7 +577,7 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
         </View>
 
         <Button
-          label={isOpeningWallet ? "Abrindo MetaMask..." : "Confirmar doa\u00E7\u00E3o"}
+          label={isSubmittingDonation ? "Processando doa\u00E7\u00E3o..." : "Confirmar doa\u00E7\u00E3o"}
           onPress={() => {
             void handleConfirmDonation();
           }}
@@ -263,6 +586,10 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
           textClassName="text-[17px]"
           rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}
         />
+
+        {donationDisabledReason ? (
+          <Text className="px-2 text-center text-[12px] leading-5 text-[#A33A3A]">{donationDisabledReason}</Text>
+        ) : null}
 
         <View className="items-center gap-3">
           <View className="flex-row items-center gap-2 rounded-full bg-[#EEF6EE] px-3 py-2">
@@ -285,9 +612,7 @@ export default function DonationDetailsPage({ route }: DonationDetailsScreenProp
           </View>
 
           <Text className="px-2 text-center text-[11px] leading-[18px] text-[#8A918D]">
-            {
-              "Sua contribui\u00E7\u00E3o \u00E9 processada com seguran\u00E7a. Um recibo digital ser\u00E1 vinculado ao seu hist\u00F3rico assim que a confirma\u00E7\u00E3o for conclu\u00EDda."
-            }
+            {"Sua contribui\u00E7\u00E3o \u00E9 processada com seguran\u00E7a. Um recibo digital ser\u00E1 vinculado ao seu hist\u00F3rico assim que a confirma\u00E7\u00E3o for conclu\u00EDda."}
           </Text>
         </View>
       </ScrollView>
