@@ -43,6 +43,7 @@ export type UserDto = {
   taxId: TaxIdDto;
   role: UserRoleCode;
   profilePicture: ImageUrlDto | null;
+  address?: AddressRequestDto | null;
   description?: string | null;
   bio?: string | null;
 };
@@ -53,6 +54,13 @@ export type EchoAmountResponseDto = {
 
 export type UpdateWalletAddressRequestDto = {
   walletAddress: string;
+};
+
+export type UpdateUserRequestDto = {
+  name?: string | null;
+  email?: string | null;
+  address?: AddressRequestDto | null;
+  profilePictureBase64?: string | null;
 };
 
 export type AddressRequestDto = {

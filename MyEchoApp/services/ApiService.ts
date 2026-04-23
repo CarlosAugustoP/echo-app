@@ -18,6 +18,7 @@ import type {
   ProjectHeaderDto,
   QueryParams,
   UpdateWalletAddressRequestDto,
+  UpdateUserRequestDto,
   UserDto,
   Uuid,
   VendorDto,
@@ -90,8 +91,8 @@ export class ApiService {
     });
   }
 
-  async updateProfile<TBody extends JsonObject>(body: TBody) {
-    return this.request<UserDto, TBody>({
+  async updateProfile(body: UpdateUserRequestDto) {
+    return this.request<UserDto, UpdateUserRequestDto>({
       method: "PATCH",
       path: "/api/user-profile",
       body,

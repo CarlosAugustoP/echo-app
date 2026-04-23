@@ -82,12 +82,11 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
                   <View className="flex-row items-start justify-between gap-4">
                     <View className="flex-1">
                       <Text className="text-[11px] font-semibold uppercase tracking-[1.8px] text-[#5975C2]">
-                        Aporte flex\u00EDvel em ETH
+                        {`Aporte flex\u00EDvel em ETH`}
                       </Text>
                       <Text className="mt-3 text-[34px] font-semibold leading-[36px] text-[#224488]">{`\u039E ${displayPrice}`}</Text>
                       <Text className="mt-3 text-[14px] leading-[20px] text-[#5B6E97]">
-                        Essa etapa aceita contribui\u00E7\u00F5es abertas. Voc\u00EA escolhe o valor e injeta liquidez
-                        direto para a ONG.
+                        {`Essa etapa aceita contribui\u00E7\u00F5es abertas. Voc\u00EA escolhe o valor e injeta liquidez direto para a ONG.`}
                       </Text>
                     </View>
 
@@ -101,7 +100,7 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
               <View className="mt-8 rounded-[2px] bg-[#F8F9F6] px-4 py-5">
                 <View className="flex-row items-center justify-between">
                   <Text className="text-[16px] font-semibold text-[#414846]">Tipo de item</Text>
-                  <Text className="text-[16px] font-semibold text-[#414846]">Pre\u00E7o por un.</Text>
+                  <Text className="text-[16px] font-semibold text-[#414846]">{`Pre\u00E7o por un.`}</Text>
                 </View>
 
                 <View className="mt-6 flex-row items-start justify-between gap-4">
@@ -121,7 +120,7 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
               style={({ pressed }) => (pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : undefined)}
             >
               <View className="min-h-[94px] flex-row items-center justify-center gap-3 px-1 py-1">
-                <Text className="text-[23px] font-semibold text-white">Ir para doa\u00E7\u00E3o</Text>
+                <Text className="text-[23px] font-semibold text-white">{`Ir para doa\u00E7\u00E3o`}</Text>
                 <MaterialCommunityIcons name="hand-heart-outline" size={32} color="#FFFFFF" />
               </View>
             </Pressable>

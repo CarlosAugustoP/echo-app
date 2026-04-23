@@ -9,6 +9,7 @@ export type RootStackParamList = {
   SignupCompleted: undefined;
   Signin: undefined;
   AppHome: undefined;
+  Profile: undefined;
   DonationHistory: undefined;
   DonationTimeline: { donation: DonationDto };
   ProjectDetails: { projectId: Uuid };
@@ -26,6 +27,7 @@ export type RoleDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 
 export type SignupCompletedScreenProps = NativeStackScreenProps<RootStackParamList, "SignupCompleted">;
 export type SigninScreenProps = NativeStackScreenProps<RootStackParamList, "Signin">;
 export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "AppHome">;
+export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 export type DonationHistoryScreenProps = NativeStackScreenProps<RootStackParamList, "DonationHistory">;
 export type DonationTimelineScreenProps = NativeStackScreenProps<RootStackParamList, "DonationTimeline">;
 export type ProjectDetailsScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectDetails">;

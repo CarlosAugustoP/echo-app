@@ -88,9 +88,16 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
       return;
     }
 
-    const labelsByTab: Record<Exclude<AuthFooterTab, "inicio" | "historico">, string> = {
+    if (tab === "perfil") {
+      if (route.name !== "Profile") {
+        navigation.navigate("Profile");
+      }
+
+      return;
+    }
+
+    const labelsByTab: Record<Exclude<AuthFooterTab, "inicio" | "historico" | "perfil">, string> = {
       dashboard: "Dashboard",
-      perfil: "Perfil",
     };
 
     showUnavailableMessage(labelsByTab[tab as keyof typeof labelsByTab]);
