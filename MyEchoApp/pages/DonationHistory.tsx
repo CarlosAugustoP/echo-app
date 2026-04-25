@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Image, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, Text, View } from "react-native";
 
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { SkeletonBlock } from "../components/common/Skeleton";
 import { AppLayout } from "../components/layout/AppLayout";
 import { DonationHistoryScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
@@ -332,8 +333,34 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
         </View>
 
         {isLoadingInitial ? (
-          <View className="min-h-[240px] items-center justify-center rounded-[24px] border border-[#E8ECE7] bg-white">
-            <LoadingSpinner label="Carregando histórico..." className="items-center justify-center" />
+          <View className="gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <View key={`history-skeleton-${index}`} className="rounded-[26px] border border-[#ECF0EB] bg-white px-4 py-4">
+                <View className="flex-row items-start gap-3">
+                  <SkeletonBlock width={56} height={56} borderRadius={16} />
+                  <View className="flex-1">
+                    <View className="flex-row items-start justify-between gap-3">
+                      <View className="flex-1 gap-2">
+                        <SkeletonBlock height={16} width="62%" borderRadius={999} />
+                      </View>
+                      <SkeletonBlock height={26} width={78} borderRadius={999} />
+                    </View>
+
+                    <View className="mt-4 gap-3">
+                      <SkeletonBlock height={24} width="52%" borderRadius={16} />
+                      <View className="flex-row items-start gap-1.5">
+                        <SkeletonBlock width={7} height={7} borderRadius={999} style={{ marginTop: 3 }} />
+                        <SkeletonBlock height={10} width="44%" borderRadius={999} />
+                      </View>
+                    </View>
+
+                    <View className="mt-3">
+                      <SkeletonBlock height={28} width={94} borderRadius={999} />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))}
           </View>
         ) : null}
 

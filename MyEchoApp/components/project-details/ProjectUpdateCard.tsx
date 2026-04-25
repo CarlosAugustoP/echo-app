@@ -1,17 +1,27 @@
-import { Image, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 import type { ProjectBlogPostHeaderDto } from "../../types/api";
 import { defaultProjectImage, formatRelativeTime, normalizeImageUrl } from "./projectDetailsUtils";
 
 type ProjectUpdateCardProps = {
   blogPost: ProjectBlogPostHeaderDto;
+  onPress?: () => void;
 };
 
-export function ProjectUpdateCard({ blogPost }: ProjectUpdateCardProps) {
+export function ProjectUpdateCard({ blogPost, onPress }: ProjectUpdateCardProps) {
   const headerImageUrl = normalizeImageUrl(blogPost.headerImage);
+  const CardContainer = onPress ? Pressable : View;
 
   return (
-    <View className="overflow-hidden rounded-[22px] bg-white">
+    <CardContainer
+      className="overflow-hidden rounded-[22px] bg-white"
+      {...(onPress
+        ? {
+            onPress,
+            style: ({ pressed }: { pressed: boolean }) => (pressed ? { opacity: 0.88 } : undefined),
+          }
+        : {})}
+    >
       {headerImageUrl ? (
         <Image source={{ uri: headerImageUrl }} className="h-[180px] w-full" resizeMode="cover" />
       ) : (
@@ -35,6 +45,6 @@ export function ProjectUpdateCard({ blogPost }: ProjectUpdateCardProps) {
         <Text className="text-[22px] font-semibold leading-7 text-[#202124]">{blogPost.title?.trim() || " "}</Text>
         <Text className="text-[13px] leading-5 text-[#667085]">{blogPost.first100CharsOfContent?.trim() || " "}</Text>
       </View>
-    </View>
+    </CardContainer>
   );
 }

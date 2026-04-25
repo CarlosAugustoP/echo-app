@@ -1,5 +1,6 @@
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
+import { SkeletonBlock } from "../common/Skeleton";
 import { SectionTitle } from "./SectionTitle";
 
 const defaultProjectImage = require("../../assets/adaptive-icon.png");
@@ -23,6 +24,7 @@ type ProjectCarouselProps = {
   projects: readonly ProjectData[];
   compact?: boolean;
   onProjectPress?: (project: ProjectData) => void;
+  isLoading?: boolean;
 };
 
 function ProjectCard({
@@ -89,7 +91,26 @@ function ProjectCard({
   );
 }
 
-export function ProjectCarousel({ title, projects, compact = false, onProjectPress }: ProjectCarouselProps) {
+function ProjectCardSkeleton({ compact = false }: { compact?: boolean }) {
+  const cardWidthClass = compact ? "w-[220px]" : "w-[290px]";
+  const imageHeight = compact ? 148 : 170;
+
+  return (
+    <View className={`mr-3 rounded-[28px] bg-[#F2F4F3] p-4 ${cardWidthClass}`}>
+      <SkeletonBlock height={imageHeight} borderRadius={22} />
+      <View className="gap-3 px-1 pt-4">
+        <SkeletonBlock height={20} width="72%" borderRadius={999} />
+        <SkeletonBlock height={5} width="100%" borderRadius={999} />
+        <View className="flex-row items-center justify-between gap-3">
+          <SkeletonBlock height={12} width="38%" borderRadius={999} />
+          <SkeletonBlock height={12} width="30%" borderRadius={999} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export function ProjectCarousel({ title, projects, compact = false, onProjectPress, isLoading = false }: ProjectCarouselProps) {
   return (
     <View className="gap-4">
       <SectionTitle>{title}</SectionTitle>
@@ -98,14 +119,18 @@ export function ProjectCarousel({ title, projects, compact = false, onProjectPre
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 8 }}
       >
-        {projects.map((project) => (
-          <ProjectCard
-            key={project.id ?? `${project.title}-${project.goal}`}
-            compact={compact}
-            {...project}
-            onPress={onProjectPress ? () => onProjectPress(project) : undefined}
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: compact ? 3 : 2 }).map((_, index) => (
+              <ProjectCardSkeleton key={`project-skeleton-${index}`} compact={compact} />
+            ))
+          : projects.map((project) => (
+              <ProjectCard
+                key={project.id ?? `${project.title}-${project.goal}`}
+                compact={compact}
+                {...project}
+                onPress={onProjectPress ? () => onProjectPress(project) : undefined}
+              />
+            ))}
       </ScrollView>
     </View>
   );

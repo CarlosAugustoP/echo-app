@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { Button } from "../components/common/Button";
+import { PageHeader } from "../components/common/PageHeader";
+import { SkeletonBlock } from "../components/common/Skeleton";
+import { StateCard } from "../components/common/StateCard";
 import { AppLayout } from "../components/layout/AppLayout";
 import { MilestoneCard } from "../components/project-details/MilestoneCard";
 import { NgoInfoCard } from "../components/project-details/NgoInfoCard";
@@ -130,73 +133,62 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">
       <ScrollView className="flex-1" contentContainerClassName="gap-6 pb-10" showsVerticalScrollIndicator={false}>
-        <View className="flex-row items-start justify-between gap-4">
-          <View className="flex-1 gap-3">
-            <Pressable
-              className="flex-row items-center gap-2 self-start"
-              onPress={() => navigation.goBack()}
-              style={({ pressed }) => (pressed ? { opacity: 0.72 } : undefined)}
-            >
-              <Ionicons name="arrow-back" size={16} color="#7D8A86" />
-              <Text className="text-md font-semibold uppercase tracking-[1px] text-[#206223]">
-                Conheca o projeto
-              </Text>
-            </Pressable>
-
-            <View className="gap-2">
-              <Text className="text-[34px] font-semibold leading-9 text-[#202124]">
-                {project?.title?.trim() || " "}
-              </Text>
-              
+        <PageHeader
+          title={project?.title?.trim() || " "}
+          description={project?.createdByName ? `Por ${project.createdByName}` : undefined}
+          backLabel="Conheca o projeto"
+          onBackPress={() => navigation.goBack()}
+          rightSlot={
+            <View className="mt-10 h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF6EE]">
+              <MaterialCommunityIcons name="hand-heart-outline" size={22} color="#2F7D32" />
             </View>
-            <Text>
-                Por {project?.createdByName}
-            </Text>
-          </View>
+          }
+        />
 
-          <View className="mt-10 h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF6EE]">
-            <MaterialCommunityIcons name="hand-heart-outline" size={22} color="#2F7D32" />
-          </View>
-        </View>
-
-        <View className="overflow-hidden rounded-[24px] bg-[#EEF2EE]">
-          {mainImageUrl ? (
-            <Image source={{ uri: mainImageUrl }} className="h-[212px] w-full" resizeMode="cover" />
-          ) : (
-            <View className="h-[212px] w-full items-center justify-center bg-[#EEF2EE]">
-              <Image
-                source={defaultProjectImage}
-                className="h-[92px] w-[92px]"
-                resizeMode="contain"
-                style={{ opacity: 0.18 }}
-              />
-            </View>
-          )}
-
-          <View className="absolute bottom-4 left-4 right-4 rounded-[18px] bg-white/95 px-4 py-3">
-            <Text className="text-[9px] font-normal uppercase tracking-[1px] text-[#94A3B8]">
-              Acumulado at&eacute; agora
-            </Text>
-            <View className="mt-2">
-              <Text className="text-[30px] font-bold leading-8 text-[#2F7D32]">{totalProgress}%</Text>
-              <View className="mt-3 h-[6px] overflow-hidden rounded-full bg-[#E4E7E5]">
-                <View className="h-full rounded-full bg-[#2F7D32]" style={{ width: `${totalProgress}%` }} />
+        {isLoading && !project ? (
+          <View className="gap-4">
+            <SkeletonBlock height={212} borderRadius={24} />
+            <View className="rounded-[18px] border border-[#EEF1EB] bg-white px-4 py-6">
+              <SkeletonBlock height={20} width="36%" borderRadius={999} />
+              <View className="mt-4 gap-3">
+                <SkeletonBlock height={16} width="100%" borderRadius={999} />
+                <SkeletonBlock height={16} width="90%" borderRadius={999} />
+                <SkeletonBlock height={16} width="76%" borderRadius={999} />
               </View>
             </View>
           </View>
-        </View>
+        ) : (
+          <View className="overflow-hidden rounded-[24px] bg-[#EEF2EE]">
+            {mainImageUrl ? (
+              <Image source={{ uri: mainImageUrl }} className="h-[212px] w-full" resizeMode="cover" />
+            ) : (
+              <View className="h-[212px] w-full items-center justify-center bg-[#EEF2EE]">
+                <Image
+                  source={defaultProjectImage}
+                  className="h-[92px] w-[92px]"
+                  resizeMode="contain"
+                  style={{ opacity: 0.18 }}
+                />
+              </View>
+            )}
 
-        {isLoading ? (
-          <View className="rounded-[22px] bg-white px-4 py-5">
-            <Text className="text-[14px] text-[#667085]">Carregando projeto...</Text>
+            <View className="absolute bottom-4 left-4 right-4 rounded-[18px] bg-white/95 px-4 py-3">
+              <Text className="text-[9px] font-normal uppercase tracking-[1px] text-[#94A3B8]">
+                Acumulado at&eacute; agora
+              </Text>
+              <View className="mt-2">
+                <Text className="text-[30px] font-bold leading-8 text-[#2F7D32]">{totalProgress}%</Text>
+                <View className="mt-3 h-[6px] overflow-hidden rounded-full bg-[#E4E7E5]">
+                  <View className="h-full rounded-full bg-[#2F7D32]" style={{ width: `${totalProgress}%` }} />
+                </View>
+              </View>
+            </View>
           </View>
-        ) : null}
+        )}
 
-        {loadError ? (
-          <View className="rounded-[22px] border border-[#F2C9C9] bg-[#FFF4F4] px-4 py-4">
-            <Text className="text-[14px] leading-5 text-[#A33A3A]">{loadError}</Text>
-          </View>
-        ) : null}
+        {isLoading && !project ? null : isLoading ? <StateCard kind="loading" message="Carregando projeto..." /> : null}
+
+        {loadError ? <StateCard kind="error" message={loadError} /> : null}
 
         <View className="overflow-hidden rounded-[18px] border border-[#EEF1EB] bg-white px-4 py-6">
           <Text className="text-[20px] font-semibold leading-6 text-[#202124]">Sobre o projeto</Text>
@@ -268,7 +260,20 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
         {blogPosts.length > 0 && (
           <View className="gap-3">
             <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Faça parte dessa história</Text>
-            {blogPosts.length > 0 ? <ProjectUpdateCard blogPost={blogPosts[0]} /> : <SectionCard />}
+            {blogPosts.length > 0 ? (
+              <ProjectUpdateCard
+                blogPost={blogPosts[0]}
+                onPress={() =>
+                  navigation.navigate("ProjectBlogPost", {
+                    blogPostId: blogPosts[0].id,
+                    projectId: route.params.projectId,
+                    projectTitle: project?.title?.trim() || undefined,
+                  })
+                }
+              />
+            ) : (
+              <SectionCard />
+            )}
           </View>
         )}
       </ScrollView>

@@ -3,6 +3,7 @@ import { ImageBackground, Pressable, ScrollView, Text, View } from "react-native
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import { SkeletonBlock } from "../components/common/Skeleton";
 import { ImpactSummaryCard } from "../components/home/ImpactSummaryCard";
 import { ProjectCarousel, type ProjectData } from "../components/home/ProjectCarousel";
 import { SectionTitle } from "../components/home/SectionTitle";
@@ -74,10 +75,12 @@ const defaultContributionMix = [
 const contributionMixColors = ["#3564C9", "#68A241", "#74A8FF", "#D79A2B", "#A65FD8"] as const;
 
 const fallbackBlogPost = {
+  id: null as string | null,
   title: "Lua's first day at the new Learning Center",
   imageUrl: null as string | null,
   publishedLabel: "2 hours ago",
   description: "Your R$25.00 contribution helped open another class with school supplies and meals.",
+  projectTitle: undefined as string | undefined,
 };
 
 function formatRelativeTime(isoDate: string) {
@@ -153,6 +156,7 @@ function buildContributionMix(distribution: DonationDistributionDto | null) {
 export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   const { currentUser } = useUserStore();
   const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [isLoadingHomeData, setIsLoadingHomeData] = useState(true);
   const [featuredProjects, setFeaturedProjects] = useState<ProjectData[]>([...featuredProjectMocks]);
   const [recommendedProjects, setRecommendedProjects] = useState<ProjectData[]>([
     ...recommendedProjectMocks,
@@ -198,39 +202,48 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
     let isMounted = true;
 
     const loadHomeData = async () => {
-      const [trendingResult, forYouResult, distributionResult, blogResult] = await Promise.allSettled([
-        apiClient.getTrendingProjects({ pageSize: 3 }),
-        apiClient.getForYouProjects({ pageSize: 3 }),
-        apiClient.getDonationDistribution(),
-        apiClient.getRecommendedBlogPosts({ pageSize: 1 }),
-      ]);
+      try {
+        setIsLoadingHomeData(true);
+        const [trendingResult, forYouResult, distributionResult, blogResult] = await Promise.allSettled([
+          apiClient.getTrendingProjects({ pageSize: 3 }),
+          apiClient.getForYouProjects({ pageSize: 3 }),
+          apiClient.getDonationDistribution(),
+          apiClient.getRecommendedBlogPosts({ pageSize: 1 }),
+        ]);
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) {
+          return;
+        }
 
-      if (trendingResult.status === "fulfilled") {
-        setFeaturedProjects(buildProjectCards(trendingResult.value.items, featuredProjectMocks));
-      }
+        if (trendingResult.status === "fulfilled") {
+          setFeaturedProjects(buildProjectCards(trendingResult.value.items, featuredProjectMocks));
+        }
 
-      if (forYouResult.status === "fulfilled") {
-        setRecommendedProjects(buildProjectCards(forYouResult.value.items, recommendedProjectMocks));
-      }
+        if (forYouResult.status === "fulfilled") {
+          setRecommendedProjects(buildProjectCards(forYouResult.value.items, recommendedProjectMocks));
+        }
 
-      if (distributionResult.status === "fulfilled") {
-        setContributionMix(buildContributionMix(distributionResult.value));
-      }
+        if (distributionResult.status === "fulfilled") {
+          setContributionMix(buildContributionMix(distributionResult.value));
+        }
 
-      if (blogResult.status === "fulfilled") {
-        const blogPost: ProjectBlogPostHeaderDto | undefined = blogResult.value.items[0];
+        if (blogResult.status === "fulfilled") {
+          const blogPost: ProjectBlogPostHeaderDto | undefined = blogResult.value.items[0];
 
-        if (blogPost) {
-          setRecommendedBlogPost({
-            title: blogPost.title,
-            imageUrl: normalizeImageUrl(blogPost.headerImage),
-            publishedLabel: formatRelativeTime(blogPost.createdAt),
-            description: blogPost.first100CharsOfContent || fallbackBlogPost.description,
-          });
+          if (blogPost) {
+            setRecommendedBlogPost({
+              id: blogPost.id,
+              title: blogPost.title,
+              imageUrl: normalizeImageUrl(blogPost.headerImage),
+              publishedLabel: formatRelativeTime(blogPost.createdAt),
+              description: blogPost.first100CharsOfContent || fallbackBlogPost.description,
+              projectTitle: undefined,
+            });
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingHomeData(false);
         }
       }
     };
@@ -256,6 +269,17 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
     navigation.navigate("ProjectDetails", { projectId: project.id });
   };
 
+  const handleOpenRecommendedBlogPost = () => {
+    if (!recommendedBlogPost.id) {
+      return;
+    }
+
+    navigation.navigate("ProjectBlogPost", {
+      blogPostId: recommendedBlogPost.id,
+      projectTitle: recommendedBlogPost.projectTitle,
+    });
+  };
+
   const firstName = currentUser?.name?.split(" ")[0] ?? "Carlos";
 
   return (
@@ -267,9 +291,18 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
       >
         <View className="flex-row items-start justify-between gap-4">
           <View className="flex-1 gap-1">
-            <Text className="text-[28px] font-normal text-black">Hello, {firstName}</Text>
-            <Text className="text-[28px] font-medium leading-8 text-[#206223]">You've been making some real impact.</Text>
-            {isLoadingUser ? <Text className="text-sm text-[#89908B]">Loading your profile...</Text> : null}
+            {isLoadingUser ? (
+              <View className="gap-2">
+                <SkeletonBlock height={28} width="42%" borderRadius={999} />
+                <SkeletonBlock height={32} width="86%" borderRadius={18} />
+                <SkeletonBlock height={14} width="34%" borderRadius={999} />
+              </View>
+            ) : (
+              <>
+                <Text className="text-[28px] font-normal text-black">Hello, {firstName}</Text>
+                <Text className="text-[28px] font-medium leading-8 text-[#206223]">You've been making some real impact.</Text>
+              </>
+            )}
         </View>
         </View>
 
@@ -277,6 +310,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
           impactedLives={impactStats[0].value}
           helper={impactStats[0].helper}
           description="Your monthly contributions provided sustainable meals and education for families across South America."
+          isLoading={isLoadingHomeData}
         />
 
         <View className="flex-row gap-3">
@@ -285,12 +319,14 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
             value={impactStats[1].value}
             helper={impactStats[1].helper}
             icon={<MaterialCommunityIcons name="silverware-fork-knife" size={16} color="#206223" />}
+            isLoading={isLoadingHomeData}
           />
           <StatCard
             label={impactStats[2].label}
             value={impactStats[2].value}
             helper={impactStats[2].helper}
             icon={<Ionicons name="leaf-outline" size={16} color="#206223" />}
+            isLoading={isLoadingHomeData}
           />
         </View>
 
@@ -298,12 +334,14 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
           title="Featured projects"
           projects={featuredProjects}
           onProjectPress={handleOpenProject}
+          isLoading={isLoadingHomeData}
         />
 
         <ProjectCarousel
           title="Projects for you"
           projects={recommendedProjects}
           onProjectPress={handleOpenProject}
+          isLoading={isLoadingHomeData}
         />
 
         <View className="gap-4 rounded-[24px] border border-[#E7ECE8] bg-white px-4 py-4">
@@ -311,54 +349,88 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
             <SectionTitle>Global Contribution Mix</SectionTitle>
             <Ionicons name="information-circle-outline" size={18} color="#98A09B" />
           </View>
-          <View className="gap-4">
-            {contributionMix.map((item) => (
-              <View key={item.label} className="gap-2">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-[11px] font-bold uppercase text-[#71807C]">{item.label}</Text>
-                  <Text className="text-[12px] font-bold" style={{ color: item.color }}>
-                    {item.value}%
-                  </Text>
+          {isLoadingHomeData ? (
+            <View className="gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <View key={`contribution-skeleton-${index}`} className="gap-2">
+                  <View className="flex-row items-center justify-between">
+                    <SkeletonBlock height={11} width="34%" borderRadius={999} />
+                    <SkeletonBlock height={11} width={28} borderRadius={999} />
+                  </View>
+                  <SkeletonBlock height={10} width="100%" borderRadius={999} />
                 </View>
-                <View className="h-2.5 overflow-hidden rounded-full bg-[#EFF2F0]">
-                  <View className="h-full rounded-full" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+              ))}
+            </View>
+          ) : (
+            <View className="gap-4">
+              {contributionMix.map((item) => (
+                <View key={item.label} className="gap-2">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-[11px] font-bold uppercase text-[#71807C]">{item.label}</Text>
+                    <Text className="text-[12px] font-bold" style={{ color: item.color }}>
+                      {item.value}%
+                    </Text>
+                  </View>
+                  <View className="h-2.5 overflow-hidden rounded-full bg-[#EFF2F0]">
+                    <View className="h-full rounded-full" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                  </View>
                 </View>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
 
         <View className="gap-4">
           <SectionTitle>Your impact in action</SectionTitle>
-          <ImageBackground
-            source={recommendedBlogPost.imageUrl ? { uri: recommendedBlogPost.imageUrl } : defaultBlogImage}
-            imageStyle={{ borderRadius: 28 }}
-            style={{ borderRadius: 28, overflow: "hidden" }}
-          >
-            <LinearGradient
-              colors={["rgba(38,42,48,0.15)", "rgba(38,42,48,0.92)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={{ padding: 18, minHeight: 240, justifyContent: "flex-end" }}
-            >
-              <View className="gap-3">
+          {isLoadingHomeData ? (
+            <View className="overflow-hidden rounded-[28px] bg-[#EEF3F0] p-4">
+              <SkeletonBlock height={240} borderRadius={24} />
+              <View className="mt-4 gap-3">
                 <View className="flex-row items-center gap-2">
-                  <View className="rounded-full bg-[#4A73D9] px-2 py-1">
-                    <Text className="text-[9px] font-bold uppercase text-white">NEW UPDATE</Text>
-                  </View>
-                  <Text className="text-[11px] font-medium text-[#E3E7ED]">
-                    {recommendedBlogPost.publishedLabel}
-                  </Text>
+                  <SkeletonBlock height={24} width={96} borderRadius={999} />
+                  <SkeletonBlock height={12} width={74} borderRadius={999} />
                 </View>
-                <Text className="max-w-[240px] text-[28px] font-semibold leading-8 text-white">
-                  {recommendedBlogPost.title}
-                </Text>
-                <Text className="max-w-[260px] text-[13px] leading-5 text-[#ECEEF3]">
-                  {recommendedBlogPost.description}
-                </Text>
+                <SkeletonBlock height={28} width="66%" borderRadius={18} />
+                <SkeletonBlock height={14} width="58%" borderRadius={999} />
               </View>
-            </LinearGradient>
-          </ImageBackground>
+            </View>
+          ) : (
+            <Pressable
+              onPress={handleOpenRecommendedBlogPost}
+              disabled={!recommendedBlogPost.id}
+              style={({ pressed }) => (pressed && recommendedBlogPost.id ? { opacity: 0.92 } : undefined)}
+            >
+              <ImageBackground
+                source={recommendedBlogPost.imageUrl ? { uri: recommendedBlogPost.imageUrl } : defaultBlogImage}
+                imageStyle={{ borderRadius: 28 }}
+                style={{ borderRadius: 28, overflow: "hidden" }}
+              >
+                <LinearGradient
+                  colors={["rgba(38,42,48,0.15)", "rgba(38,42,48,0.92)"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={{ padding: 18, minHeight: 240, justifyContent: "flex-end" }}
+                >
+                  <View className="gap-3">
+                    <View className="flex-row items-center gap-2">
+                      <View className="rounded-full bg-[#4A73D9] px-2 py-1">
+                        <Text className="text-[9px] font-bold uppercase text-white">NEW UPDATE</Text>
+                      </View>
+                      <Text className="text-[11px] font-medium text-[#E3E7ED]">
+                        {recommendedBlogPost.publishedLabel}
+                      </Text>
+                    </View>
+                    <Text className="max-w-[240px] text-[28px] font-semibold leading-8 text-white">
+                      {recommendedBlogPost.title}
+                    </Text>
+                    <Text className="max-w-[260px] text-[13px] leading-5 text-[#ECEEF3]">
+                      {recommendedBlogPost.description}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </ImageBackground>
+            </Pressable>
+          )}
         </View>
 
         <Pressable className="self-center pt-2" onPress={handleSignOut}>

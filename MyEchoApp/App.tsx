@@ -10,6 +10,7 @@ import DonationDetailsPage from './pages/DonationDetails';
 import DonationHistoryPage from './pages/DonationHistory';
 import DonationTimelinePage from './pages/DonationTimeline';
 import ProfilePage from './pages/Profile';
+import ProjectBlogPostPage from './pages/ProjectBlogPost';
 import ProjectDetailsPage from './pages/ProjectDetails';
 import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
@@ -39,6 +40,7 @@ export default function App() {
           <Stack.Screen name="DonationHistory" component={DonationHistoryPage} />
           <Stack.Screen name="DonationTimeline" component={DonationTimelinePage} />
           <Stack.Screen name="ProjectDetails" component={ProjectDetailsPage} />
+          <Stack.Screen name="ProjectBlogPost" component={ProjectBlogPostPage} />
           <Stack.Screen name="DonationDetails" component={DonationDetailsPage} />
         </Stack.Navigator>
       </NavigationContainer>

@@ -18,7 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 
 import { Button } from "../components/common/Button";
 import { AppLayout } from "../components/layout/AppLayout";
-import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { SkeletonBlock } from "../components/common/Skeleton";
 import { ProfileScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
 import { clearAccessToken } from "../services/authStorage";
@@ -560,12 +560,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
     const currentEditTarget = editTarget;
 
-    const payload: UpdateUserRequestDto = {
-      name: null,
-      email: null,
-      address: null,
-      profilePictureBase64: null,
-    };
+    const payload: UpdateUserRequestDto = {};
 
     if (editTarget === "name") {
       payload.name = nameDraft.trim();
@@ -612,51 +607,146 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="perfil">
       <ScrollView className="flex-1" contentContainerClassName="gap-6 pb-10" showsVerticalScrollIndicator={false}>
-        <View className="items-center gap-5 pt-1">
-          <View className="relative">
-            <View
-              className="h-[156px] w-[156px] overflow-hidden rounded-full border-[6px] border-white bg-[#E7EEE7]"
-              style={{
-                shadowColor: "#9FB0A1",
-                shadowOffset: { width: 0, height: 18 },
-                shadowOpacity: 0.22,
-                shadowRadius: 30,
-                elevation: 8,
-              }}
-            >
-              {user?.profilePicture?.url ? (
-                <Image source={{ uri: user.profilePicture.url }} className="h-full w-full" resizeMode="cover" />
-              ) : (
-                <View className="h-full w-full items-center justify-center bg-[#DDEBDC]">
-                  <Ionicons name="person" size={42} color="#2F7D32" />
-                </View>
-              )}
+        {!isLoading ? (
+          <View className="items-center gap-5 pt-1">
+            <View className="relative">
+              <View
+                className="h-[156px] w-[156px] overflow-hidden rounded-full border-[6px] border-white bg-[#E7EEE7]"
+                style={{
+                  shadowColor: "#9FB0A1",
+                  shadowOffset: { width: 0, height: 18 },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 30,
+                  elevation: 8,
+                }}
+              >
+                {user?.profilePicture?.url ? (
+                  <Image source={{ uri: user.profilePicture.url }} className="h-full w-full" resizeMode="cover" />
+                ) : (
+                  <View className="h-full w-full items-center justify-center bg-[#DDEBDC]">
+                    <Ionicons name="person" size={42} color="#2F7D32" />
+                  </View>
+                )}
+              </View>
+
+              <View className="absolute bottom-[10px] right-[-2px]">
+                <PencilAction onPress={() => openEditor("profilePicture")} />
+              </View>
             </View>
 
-            <View className="absolute bottom-[10px] right-[-2px]">
-              <PencilAction onPress={() => openEditor("profilePicture")} />
+            <View className="items-center gap-3">
+              <View className="flex-row items-center justify-center gap-3">
+                <Text className="text-center text-[38px] font-semibold leading-[42px] text-[#202124]">
+                  {user?.name ?? "Echo Member"}
+                </Text>
+                <PencilAction onPress={() => openEditor("name")} small />
+              </View>
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="shield-checkmark" size={18} color="#2F7D32" />
+                <Text className="text-[13px] font-semibold uppercase tracking-[2.3px] text-[#7A847C]">
+                  {formatRoleLabel(user?.role)}
+                </Text>
+              </View>
             </View>
           </View>
-
-          <View className="items-center gap-3">
-            <View className="flex-row items-center justify-center gap-3">
-              <Text className="text-center text-[38px] font-semibold leading-[42px] text-[#202124]">
-                {user?.name ?? "Echo Member"}
-              </Text>
-              <PencilAction onPress={() => openEditor("name")} small />
-            </View>
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="shield-checkmark" size={18} color="#2F7D32" />
-              <Text className="text-[13px] font-semibold uppercase tracking-[2.3px] text-[#7A847C]">
-                {formatRoleLabel(user?.role)}
-              </Text>
-            </View>
-          </View>
-        </View>
+        ) : null}
 
         {isLoading ? (
-          <View className="min-h-[180px] items-center justify-center rounded-[28px] bg-white">
-            <LoadingSpinner label="Loading your profile..." className="items-center justify-center" />
+          <View className="gap-6">
+            <View className="rounded-[28px] bg-white px-5 py-5">
+              <View className="items-center gap-5">
+                <View className="relative">
+                  <SkeletonBlock
+                    width={156}
+                    height={156}
+                    borderRadius={999}
+                    style={{
+                      borderWidth: 6,
+                      borderColor: "#FFFFFF",
+                      shadowColor: "#9FB0A1",
+                      shadowOffset: { width: 0, height: 18 },
+                      shadowOpacity: 0.22,
+                      shadowRadius: 30,
+                      elevation: 8,
+                    }}
+                  />
+                  <View className="absolute bottom-[10px] right-[-2px]">
+                    <SkeletonBlock width={52} height={52} borderRadius={999} />
+                  </View>
+                </View>
+
+                <View className="items-center gap-3">
+                  <View className="flex-row items-center justify-center gap-3">
+                    <SkeletonBlock height={38} width={220} borderRadius={18} />
+                    <SkeletonBlock width={36} height={36} borderRadius={999} />
+                  </View>
+                  <View className="flex-row items-center gap-2">
+                    <SkeletonBlock width={18} height={18} borderRadius={999} />
+                    <SkeletonBlock height={13} width={180} borderRadius={999} />
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View className="rounded-[28px] bg-white px-5 py-5">
+              <View className="gap-3">
+                <SkeletonBlock height={14} width="38%" borderRadius={999} />
+                <View className="flex-row items-end gap-2">
+                  <SkeletonBlock height={56} width={126} borderRadius={20} />
+                  <SkeletonBlock height={24} width={92} borderRadius={999} />
+                </View>
+                <View className="mt-3 flex-row gap-4">
+                  <SkeletonBlock height={64} width="72%" borderRadius={20} />
+                  <SkeletonBlock height={64} width={64} borderRadius={20} />
+                </View>
+              </View>
+            </View>
+
+            <View className="gap-3">
+              <SkeletonBlock height={11} width={130} borderRadius={999} className="mx-1" />
+              <View className="rounded-[26px] bg-white px-4 py-4">
+                <View className="flex-row items-center gap-3">
+                  <SkeletonBlock width={48} height={48} borderRadius={16} />
+                  <View className="flex-1 gap-2">
+                    <SkeletonBlock height={15} width="58%" borderRadius={999} />
+                    <SkeletonBlock height={12} width="44%" borderRadius={999} />
+                  </View>
+                  <SkeletonBlock height={28} width={86} borderRadius={999} />
+                </View>
+              </View>
+            </View>
+
+            <View className="gap-3">
+              <View className="flex-row items-center justify-between px-1">
+                <SkeletonBlock height={11} width={82} borderRadius={999} />
+                <SkeletonBlock width={36} height={36} borderRadius={999} />
+              </View>
+              <View className="rounded-[26px] bg-white px-4 py-4">
+                <View className="flex-row items-center gap-3">
+                  <SkeletonBlock width={48} height={48} borderRadius={16} />
+                  <View className="flex-1 gap-2">
+                    <SkeletonBlock height={15} width="70%" borderRadius={999} />
+                    <SkeletonBlock height={12} width="90%" borderRadius={999} />
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View className="gap-3">
+              <SkeletonBlock height={11} width={110} borderRadius={999} className="mx-1" />
+              <View className="gap-3">
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <View key={`profile-pref-skeleton-${index}`} className="flex-row items-center gap-3 rounded-[22px] bg-white px-4 py-4">
+                    <SkeletonBlock width={44} height={44} borderRadius={999} />
+                    <View className="flex-1 gap-2">
+                      <SkeletonBlock height={14} width="46%" borderRadius={999} />
+                      <SkeletonBlock height={12} width="72%" borderRadius={999} />
+                    </View>
+                    <SkeletonBlock width={42} height={24} borderRadius={999} />
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
         ) : null}
 

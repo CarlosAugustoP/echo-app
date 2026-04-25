@@ -13,6 +13,11 @@ export type RootStackParamList = {
   DonationHistory: undefined;
   DonationTimeline: { donation: DonationDto };
   ProjectDetails: { projectId: Uuid };
+  ProjectBlogPost: {
+    blogPostId: Uuid;
+    projectId?: Uuid;
+    projectTitle?: string;
+  };
   DonationDetails: {
     projectId: Uuid;
     projectTitle: string;
@@ -31,4 +36,5 @@ export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, "Pro
 export type DonationHistoryScreenProps = NativeStackScreenProps<RootStackParamList, "DonationHistory">;
 export type DonationTimelineScreenProps = NativeStackScreenProps<RootStackParamList, "DonationTimeline">;
 export type ProjectDetailsScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectDetails">;
+export type ProjectBlogPostScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectBlogPost">;
 export type DonationDetailsScreenProps = NativeStackScreenProps<RootStackParamList, "DonationDetails">;
