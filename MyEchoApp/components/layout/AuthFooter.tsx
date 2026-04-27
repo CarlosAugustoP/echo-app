@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Alert, Platform, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { RootStackParamList } from "../../navigation/types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -55,18 +55,6 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
 
-  const showUnavailableMessage = (label: string) => {
-    const title = `${label} em breve`;
-    const message = `A navegação para ${label.toLowerCase()} ainda não está disponível nesta versão.`;
-
-    if (Platform.OS === "web") {
-      window.alert(`${title}\n\n${message}`);
-      return;
-    }
-
-    Alert.alert(title, message);
-  };
-
   const handleTabPress = (tab: AuthFooterTab) => {
     if (tab === activeTab) {
       return;
@@ -96,11 +84,9 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
       return;
     }
 
-    const labelsByTab: Record<Exclude<AuthFooterTab, "inicio" | "historico" | "perfil">, string> = {
-      dashboard: "Dashboard",
-    };
-
-    showUnavailableMessage(labelsByTab[tab as keyof typeof labelsByTab]);
+    if (tab === "dashboard" && route.name !== "Dashboard") {
+      navigation.navigate("Dashboard");
+    }
   };
 
   return (
