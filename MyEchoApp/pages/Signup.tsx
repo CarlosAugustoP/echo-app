@@ -12,13 +12,13 @@ export default function SignupPage({ navigation }: SignupScreenProps){
             <View className="flex flex-col gap-6">
                 <View className="flex flex-col gap-6">
                     <Text className="font-semibold text-[14px] leading-[15px] tracking-[2px] uppercase text-echoDarkGreen">
-                        WELCOME TO ECHO
+                        BEM-VINDO A ECHO
                     </Text>
                     <Text className="text-5xl font-extrabold text-black">
-                        How would you like to begin?
+                        Como você gostaria de começar?
                     </Text>
                     <Text className="leading-6 text-slate-600 text-xl">
-                        Select your role in our community to begin your journey.
+                        Escolha seu papel na comunidade para iniciar sua jornada.
                     </Text>
                 </View>
                 <RoleCard
@@ -30,9 +30,9 @@ export default function SignupPage({ navigation }: SignupScreenProps){
                     onPress={() => navigation.navigate("RoleDetails", { role: RoleEnum.NGO })}
                 />
                 <View className="flex-row flex-wrap items-center justify-center gap-1">
-                    <Text className="text-[17px] text-slate-600">I already have an account.</Text>
+                    <Text className="text-[17px] text-slate-600">Eu ja tenho uma conta.</Text>
                     <Pressable onPress={() => navigation.navigate("Signin")}>
-                        <Strong className="text-echoDarkGreen text-[17px] text-extrabold underline">Sign in</Strong>
+                        <Strong className="text-echoDarkGreen text-[17px] text-extrabold underline">Entrar</Strong>
                     </Pressable>
                 </View>
             </View>

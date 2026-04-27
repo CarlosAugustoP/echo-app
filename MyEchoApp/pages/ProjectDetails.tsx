@@ -62,7 +62,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
         }
       } catch (error) {
         if (isMounted) {
-          setLoadError(error instanceof Error ? error.message : "We couldn't load this project right now.");
+          setLoadError(error instanceof Error ? error.message : "Não foi possível carregar este projeto agora.");
         }
       } finally {
         if (isMounted) {
@@ -136,7 +136,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
         <PageHeader
           title={project?.title?.trim() || " "}
           description={project?.createdByName ? `Por ${project.createdByName}` : undefined}
-          backLabel="Conheca o projeto"
+          backLabel="Conheça o projeto"
           onBackPress={() => navigation.goBack()}
           rightSlot={
             <View className="mt-10 h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF6EE]">

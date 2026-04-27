@@ -73,7 +73,7 @@ export default function ProjectBlogPostPage({ navigation, route }: ProjectBlogPo
         }
       } catch (error) {
         if (isMounted) {
-          setLoadError(error instanceof Error ? error.message : "We couldn't load this post right now.");
+          setLoadError(error instanceof Error ? error.message : "Não foi possível carregar esta postagem agora.");
         }
       } finally {
         if (isMounted) {
@@ -89,7 +89,7 @@ export default function ProjectBlogPostPage({ navigation, route }: ProjectBlogPo
     };
   }, [route.params.blogPostId, route.params.projectId]);
 
-  const title = blogPost?.title?.trim() || "Atualizacao do projeto";
+  const title = blogPost?.title?.trim() || "Atualização do projeto";
   const projectTitle = project?.title?.trim() || route.params.projectTitle?.trim() || "Projeto";
   const headerImageUrl = normalizeImageUrl(blogPost?.headerImage);
   const projectDescription = project?.description?.trim() || "";
@@ -156,7 +156,7 @@ export default function ProjectBlogPostPage({ navigation, route }: ProjectBlogPo
 
         {!isLoading && !loadError ? (
           <View className="rounded-[22px] border border-[#EEF1EB] bg-white px-5 py-6">
-            <Text className="text-[18px] font-semibold leading-6 text-[#202124]">Atualizacao</Text>
+            <Text className="text-[18px] font-semibold leading-6 text-[#202124]">Atualização</Text>
             <View className="mt-4 gap-4">
               {contentBlocks.length > 0 ? (
                 contentBlocks.map((block, index) => (
@@ -165,7 +165,7 @@ export default function ProjectBlogPostPage({ navigation, route }: ProjectBlogPo
                   </Text>
                 ))
               ) : (
-                <Text className="text-[15px] leading-7 text-[#525B57]">Esta postagem ainda nao tem conteudo.</Text>
+                <Text className="text-[15px] leading-7 text-[#525B57]">Esta postagem ainda não tem conteúdo.</Text>
               )}
             </View>
           </View>

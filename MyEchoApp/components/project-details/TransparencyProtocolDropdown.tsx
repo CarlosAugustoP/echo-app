@@ -7,7 +7,7 @@ type TransparencyProtocolDropdownProps = {
 };
 
 const transparencyProtocolDescription =
-  "Ao contr\u00E1rio das doa\u00E7\u00F5es convencionais, o ECHO utiliza a infraestrutura de \"Living Ledger\". Os fundos n\u00E3o s\u00E3o liberados de imediato; eles ficam protegidos por contratos inteligentes e s\u00E3o transferidos automaticamente e diretamente para um fornecedor de confian\u00E7a, assegurando que a compra de um item resultar\u00E1 exclusivamente naquele mesmo item.";
+  "Ao contrário das doações convencionais, o ECHO utiliza a infraestrutura de \"Living Ledger\". Os fundos não são liberados de imediato; eles ficam protegidos por contratos inteligentes e são transferidos automaticamente e diretamente para um fornecedor de confiança, assegurando que a compra de um item resultará exclusivamente naquele mesmo item.";
 function buildSepoliaAddressUrl(contractAddress: string) {
   return `https://sepolia.etherscan.io/address/${encodeURIComponent(contractAddress)}`;
 }
@@ -39,7 +39,7 @@ export function TransparencyProtocolDropdown({ contractAddress }: TransparencyPr
         <View className="flex-1 flex-row items-center gap-[10px] pr-3">
           <View className="h-[4px] w-[4px] rounded-full bg-[#202124]" />
           <Text className="flex-1 text-[18px] font-medium leading-5 text-[#202124]">
-            {"Protocolo de Transpar\u00EAncia"}
+            {"Protocolo de Transparência"}
           </Text>
         </View>
 
@@ -55,7 +55,7 @@ export function TransparencyProtocolDropdown({ contractAddress }: TransparencyPr
               Smart Contract do Projeto
             </Text>
             <Text className="mt-2 text-[13px] leading-[21px] text-[#202124]">
-              {hasAddress ? normalizedAddress : "Smart contract ainda n\u00E3o dispon\u00EDvel para este projeto."}
+              {hasAddress ? normalizedAddress : "Smart contract ainda não disponível para este projeto."}
             </Text>
 
             {hasAddress && sepoliaUrl ? (

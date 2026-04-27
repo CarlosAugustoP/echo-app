@@ -107,7 +107,7 @@ function isUserRejectedError(error: unknown) {
 
 function getDonationErrorMessage(error: unknown) {
   if (isUserRejectedError(error)) {
-    return "A transa\u00E7\u00E3o foi cancelada na carteira.";
+    return "A transação foi cancelada na carteira.";
   }
 
   if (error instanceof ApiServiceError) {
@@ -118,7 +118,7 @@ function getDonationErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "N\u00E3o foi poss\u00EDvel concluir a doa\u00E7\u00E3o agora. Tente novamente em instantes.";
+  return "Não foi possível concluir a doação agora. Tente novamente em instantes.";
 }
 
 function showDonationDialog(
@@ -172,7 +172,7 @@ async function registerDonationWithRetry(payload: DonationRequestDto) {
       const donationRegistered = await apiClient.donate(payload);
 
       if (!donationRegistered) {
-        throw new Error("A API n\u00E3o confirmou o registro da doa\u00E7\u00E3o.");
+        throw new Error("A API não confirmou o registro da doação.");
       }
 
       return;
@@ -187,7 +187,7 @@ async function registerDonationWithRetry(payload: DonationRequestDto) {
     }
   }
 
-  throw lastError ?? new Error("A doa\u00E7\u00E3o n\u00E3o pode ser registrada.");
+  throw lastError ?? new Error("A doação não pode ser registrada.");
 }
 
 function getFlowContent(step: DonationFlowStep) {
@@ -196,30 +196,30 @@ function getFlowContent(step: DonationFlowStep) {
       return {
         badge: "AGUARDANDO REDE",
         description:
-          "Sua transa\u00E7\u00E3o j\u00E1 foi enviada na Sepolia. Estamos aguardando alguns segundos para sincronizar o hash antes de registrar a doa\u00E7\u00E3o.",
-        headline: "Estamos confirmando sua doa\u00E7\u00E3o",
-        summaryTitle: "Doa\u00E7\u00E3o em valida\u00E7\u00E3o",
+          "Sua transação já foi enviada na Sepolia. Estamos aguardando alguns segundos para sincronizar o hash antes de registrar a doação.",
+        headline: "Estamos confirmando sua doação",
+        summaryTitle: "Doação em validação",
         supporting:
-          "Assim que a rede estabilizar essa transa\u00E7\u00E3o, seguimos automaticamente para o registro da sua contribui\u00E7\u00E3o.",
+          "Assim que a rede estabilizar essa transação, seguimos automaticamente para o registro da sua contribuição.",
       };
     case "registering":
       return {
         badge: "VALIDANDO API",
         description:
-          "A blockchain j\u00E1 respondeu. Agora estamos confirmando sua doa\u00E7\u00E3o na API da Echo para vincular o recibo ao seu hist\u00F3rico.",
-        headline: "Quase l\u00E1",
-        summaryTitle: "Registrando doa\u00E7\u00E3o",
+          "A blockchain já respondeu. Agora estamos confirmando sua doação na API da Echo para vincular o recibo ao seu histórico.",
+        headline: "Quase lá",
+        summaryTitle: "Registrando doação",
         supporting:
-          "Esse passo garante que seu impacto fique vis\u00EDvel no ecossistema Echo com rastreabilidade completa.",
+          "Esse passo garante que seu impacto fique visível no ecossistema Echo com rastreabilidade completa.",
       };
     case "success":
       return {
         badge: "VERIFICADO",
         description:
-          "Cada contribui\u00E7\u00E3o \u00E9 registrada no nosso livro-raz\u00E3o, garantindo que o seu impacto chegue de forma transparente e humana.",
+          "Cada contribuição é registrada no nosso livro-razão, garantindo que o seu impacto chegue de forma transparente e humana.",
         headline: "Obrigado!",
-        summaryTitle: "Doa\u00E7\u00E3o conclu\u00EDda",
-        supporting: "Seu apoio est\u00E1 transformando realidades no ecossistema Echo.",
+        summaryTitle: "Doação concluída",
+        supporting: "Seu apoio está transformando realidades no ecossistema Echo.",
       };
     default:
       return null;
@@ -260,21 +260,21 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
   const hasFiniteCurrent = Number.isFinite(currentAmountValue);
   const isCompleted =
     progressPercentage >= 100 || (hasFiniteTarget && hasFiniteCurrent && currentAmountValue >= targetAmountValue);
-  const milestoneLabel = `MILESTONE ${formatMilestoneIndex(goalIndex)} \u2022 ${isCompleted ? "COMPLETADO" : "EM PROGRESSO"}`;
+  const milestoneLabel = `MILESTONE ${formatMilestoneIndex(goalIndex)} " ${isCompleted ? "COMPLETADO" : "EM PROGRESSO"}`;
   const maxQuantity =
     hasFiniteTarget && hasFiniteCurrent && targetAmountValue > currentAmountValue
       ? Math.max(1, Math.ceil(targetAmountValue - currentAmountValue))
       : 99;
   const contractLabel = `BLOCKCHAIN VERIFICADA: ${shortenAddress(normalizedContractAddress)}`;
-  const walletLabel = walletAddress ? shortenAddress(walletAddress) : "Carteira n\u00E3o encontrada";
+  const walletLabel = walletAddress ? shortenAddress(walletAddress) : "Carteira não encontrada";
   const donationDisabledReason = !hasValidWalletAddress
-    ? "Atualize sua carteira no perfil com um endere\u00E7o EVM v\u00E1lido para doar."
+    ? "Atualize sua carteira no perfil com um endereço EVM válido para doar."
     : !hasValidContractAddress
-      ? "Este projeto ainda n\u00E3o possui smart contract v\u00E1lido para receber doa\u00E7\u00F5es."
+      ? "Este projeto ainda não possui smart contract válido para receber doações."
       : totalPriceWei <= 0n
-        ? "Essa meta ainda n\u00E3o possui um valor definido para doa\u00E7\u00E3o."
+        ? "Essa meta ainda não possui um valor definido para doação."
         : isCompleted
-          ? "Essa meta j\u00E1 foi conclu\u00EDda."
+          ? "Essa meta já foi concluída."
           : null;
   const canConfirmDonation =
     hasValidWalletAddress &&
@@ -282,17 +282,17 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
     totalPriceWei > 0n &&
     !isCompleted &&
     !isSubmittingDonation;
-  const summaryItemLabel = isMoneyGoal ? "Contribui\u00E7\u00E3o direta" : `${quantity}x ${itemLabel}`;
+  const summaryItemLabel = isMoneyGoal ? "Contribuição direta" : `${quantity}x ${itemLabel}`;
   const flowContent = getFlowContent(flowStep);
 
   const handleShareJourney = async () => {
     try {
       await Share.share({
-        message: `Acabei de apoiar ${projectTitle} na Echo. Minha contribui\u00E7\u00E3o ficou registrada na Sepolia e no ecossistema Echo.`,
+        message: `Acabei de apoiar ${projectTitle} na Echo. Minha contribuição ficou registrada na Sepolia e no ecossistema Echo.`,
         title: "Compartilhar jornada",
       });
     } catch {
-      showDonationDialog("N\u00E3o foi poss\u00EDvel compartilhar", "Tente novamente em instantes.");
+      showDonationDialog("Não foi possível compartilhar", "Tente novamente em instantes.");
     }
   };
 
@@ -333,11 +333,11 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
 
       if (transactionHash) {
         showDonationDialog(
-          "Transa\u00E7\u00E3o enviada, mas a doa\u00E7\u00E3o n\u00E3o foi registrada",
-          `O hash ${transactionHash} j\u00E1 foi gerado na carteira, mas a API n\u00E3o confirmou o registro. N\u00E3o envie novamente agora; use esse hash para reconcilia\u00E7\u00E3o.`,
+          "Transação enviada, mas a doação não foi registrada",
+          `O hash ${transactionHash} já foi gerado na carteira, mas a API não confirmou o registro. Não envie novamente agora; use esse hash para reconciliação.`,
         );
       } else {
-        showDonationDialog("N\u00E3o foi poss\u00EDvel concluir a doa\u00E7\u00E3o", getDonationErrorMessage(error));
+        showDonationDialog("Não foi possível concluir a doação", getDonationErrorMessage(error));
       }
     } finally {
       setIsSubmittingDonation(false);
@@ -406,7 +406,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
             <View className="mt-4 gap-3">
               <View className="flex-row items-center justify-between gap-4">
                 <Text className="flex-1 text-[12px] leading-5 text-[#E5F6E6]">{summaryItemLabel}</Text>
-                <Text className="text-[12px] font-medium text-[#E5F6E6]">{`\u039E ${totalPriceDisplay}`}</Text>
+                <Text className="text-[12px] font-medium text-[#E5F6E6]">{`Ξ ${totalPriceDisplay}`}</Text>
               </View>
 
               <View className="flex-row items-center justify-between gap-4">
@@ -417,7 +417,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
               <View className="border-t border-white/20 pt-4">
                 <View className="flex-row items-center justify-between gap-4">
                   <Text className="text-[20px] font-semibold text-white">{"Impacto Total"}</Text>
-                  <Text className="text-[34px] font-semibold leading-9 text-white">{`\u039E ${totalPriceDisplay}`}</Text>
+                  <Text className="text-[34px] font-semibold leading-9 text-white">{`Ξ ${totalPriceDisplay}`}</Text>
                 </View>
               </View>
             </View>
@@ -425,11 +425,11 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
 
           <View className="rounded-[22px] border border-[#E5EAE4] bg-white px-4 py-4">
             <Text className="text-[16px] font-semibold text-[#202124]">
-              {isSuccess ? "Seu impacto est\u00E1 em movimento" : "Estamos finalizando seu recibo"}
+              {isSuccess ? "Seu impacto está em movimento" : "Estamos finalizando seu recibo"}
             </Text>
             <Text className="mt-2 text-[13px] leading-[21px] text-[#6F7A75]">
               {isSuccess
-                ? "Seu recibo j\u00E1 est\u00E1 pronto e vinculado ao hist\u00F3rico da sua conta. Voc\u00EA pode compartilhar essa jornada ou voltar para acompanhar mais projetos."
+                ? "Seu recibo já está pronto e vinculado ao histórico da sua conta. Você pode compartilhar essa jornada ou voltar para acompanhar mais projetos."
                 : "Mantenha esta tela aberta por mais alguns segundos. Assim que a API confirmar o registro, mostramos o agradecimento final automaticamente."}
             </Text>
             <View className="mt-4 flex-row items-center gap-2">
@@ -476,7 +476,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
             </Text>
           </View>
 
-          <Text className="mt-2 text-[34px] font-semibold leading-9 text-[#202124]">{"Doa\u00E7\u00E3o"}</Text>
+          <Text className="mt-2 text-[34px] font-semibold leading-9 text-[#202124]">{"Doação"}</Text>
           <Text className="mt-2 text-[14px] leading-5 text-[#6B7280]">{"Selecione o quanto deseja doar"}</Text>
         </View>
 
@@ -486,7 +486,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
           <Text className="mt-3 text-[13px] leading-[21px] text-[#5E6763]">
             {goalDescription}{" "}
             <Text className="font-medium text-[#46504C]">
-              {`Atualmente em ${progressPercentage}% de conclus\u00E3o f\u00EDsica.`}
+              {`Atualmente em ${progressPercentage}% de conclusão física.`}
             </Text>
           </Text>
 
@@ -494,7 +494,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
             <Text className="text-[12px] font-semibold text-[#525B57]">{itemLabel}</Text>
 
             <View className="flex-row items-center justify-between gap-4">
-              <Text className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]">{`\u039E ${unitPriceDisplay}`}</Text>
+              <Text className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]">{`Ξ ${unitPriceDisplay}`}</Text>
 
               <View className="flex-row items-center rounded-[16px] border border-[#E6EBE7] bg-[#FBFCFB] px-2 py-1">
                 <Pressable
@@ -527,18 +527,18 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
           <View className="mt-6 rounded-[18px] border border-[#E3ECFD] bg-[#F6F9FF] px-4 py-4">
             <View className="flex-row items-center gap-2">
               <MaterialCommunityIcons name="text-box-check-outline" size={16} color="#315FCB" />
-              <Text className="text-[14px] font-semibold text-[#1D3D8F]">{"Resumo da Doa\u00E7\u00E3o"}</Text>
+              <Text className="text-[14px] font-semibold text-[#1D3D8F]">{"Resumo da Doação"}</Text>
             </View>
 
             <View className="mt-4 gap-2">
               <View className="flex-row items-center justify-between gap-4">
                 <Text className="flex-1 text-[12px] leading-5 text-[#5B6E97]">{`${quantity}x ${itemLabel}`}</Text>
-                <Text className="text-[12px] font-medium text-[#5B6E97]">{`\u039E ${totalPriceDisplay}`}</Text>
+                <Text className="text-[12px] font-medium text-[#5B6E97]">{`Ξ ${totalPriceDisplay}`}</Text>
               </View>
 
               <View className="mt-2 flex-row items-center justify-between gap-4 border-t border-[#D9E5FB] pt-3">
                 <Text className="text-[22px] font-semibold text-[#202124]">{"Impacto Total"}</Text>
-                <Text className="text-[34px] font-semibold leading-9 text-[#315FCB]">{`\u039E ${totalPriceDisplay}`}</Text>
+                <Text className="text-[34px] font-semibold leading-9 text-[#315FCB]">{`Ξ ${totalPriceDisplay}`}</Text>
               </View>
             </View>
           </View>
@@ -550,7 +550,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
         </View>
 
         <View className="gap-3">
-          <Text className="text-[14px] font-semibold text-[#202124]">{"M\u00E9todo de Pagamento"}</Text>
+          <Text className="text-[14px] font-semibold text-[#202124]">{"Método de Pagamento"}</Text>
 
           <View className="rounded-[22px] border border-[#E8ECE7] bg-white px-4 py-4">
             <View className="flex-row items-center gap-3">
@@ -561,9 +561,9 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
               <View className="flex-1">
                 <Text className="text-[15px] font-semibold text-[#202124]">{walletLabel}</Text>
                 <Text className="mt-1 text-[11px] leading-4 text-[#7A8480]">
-                  {walletAddress ? walletAddress : "Atualize a carteira no seu perfil para concluir a doa\u00E7\u00E3o."}
+                  {walletAddress ? walletAddress : "Atualize a carteira no seu perfil para concluir a doação."}
                 </Text>
-                <Text className="mt-1 text-[11px] font-medium text-[#7A8480]">{"MetaMask \u00B7 Rede Sepolia"}</Text>
+                <Text className="mt-1 text-[11px] font-medium text-[#7A8480]">{"MetaMask · Rede Sepolia"}</Text>
               </View>
 
               <Pressable
@@ -577,7 +577,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
         </View>
 
         <Button
-          label={isSubmittingDonation ? "Processando doa\u00E7\u00E3o..." : "Confirmar doa\u00E7\u00E3o"}
+          label={isSubmittingDonation ? "Processando doação..." : "Confirmar doação"}
           onPress={() => {
             void handleConfirmDonation();
           }}
@@ -595,14 +595,14 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
           <View className="flex-row items-center gap-2 rounded-full bg-[#EEF6EE] px-3 py-2">
             <View className="h-[6px] w-[6px] rounded-full bg-[#2F7D32]" />
             <Text className="text-[10px] font-semibold uppercase tracking-[1px] text-[#2F7D32]">
-              {"Transa\u00E7\u00E3o pronta"}
+              {"Transação pronta"}
             </Text>
           </View>
 
           <View className="flex-row items-center gap-4">
             <View className="flex-row items-center gap-1">
               <Ionicons name="lock-closed-outline" size={12} color="#7A8480" />
-              <Text className="text-[10px] font-medium uppercase tracking-[1px] text-[#7A8480]">{"Seguran\u00E7a SSL"}</Text>
+              <Text className="text-[10px] font-medium uppercase tracking-[1px] text-[#7A8480]">{"Segurança SSL"}</Text>
             </View>
 
             <View className="flex-row items-center gap-1">
@@ -612,7 +612,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
           </View>
 
           <Text className="px-2 text-center text-[11px] leading-[18px] text-[#8A918D]">
-            {"Sua contribui\u00E7\u00E3o \u00E9 processada com seguran\u00E7a. Um recibo digital ser\u00E1 vinculado ao seu hist\u00F3rico assim que a confirma\u00E7\u00E3o for conclu\u00EDda."}
+            {"Sua contribuição é processada com segurança. Um recibo digital será vinculado ao seu histórico assim que a confirmação for concluída."}
           </Text>
         </View>
       </ScrollView>

@@ -28,13 +28,13 @@ function CompletionCard({ onContinue }: CompletionCardProps) {
     <View className="w-full rounded-[28px] border border-[#DDE5DF] bg-white px-6 py-7 shadow-sm">
       <View className="gap-4">
         <Text className="text-center text-[28px] font-extrabold leading-9 text-[#1F2529]">
-          Sign-up complete
+          Cadastro concluído
         </Text>
         <Text className="text-center text-[17px] leading-8 text-[#5D646C]">
-          Welcome to ECHO. Your account was created successfully and you are ready to start transforming realities.
+          Bem-vindo à ECHO. Sua conta foi criada com sucesso e você já pode começar a transformar realidades.
         </Text>
         <Button
-          label="Go to home page"
+          label="Ir para a página inicial"
           onPress={onContinue}
           className="mt-2 min-h-[58px] rounded-2xl"
           textClassName="text-[17px]"

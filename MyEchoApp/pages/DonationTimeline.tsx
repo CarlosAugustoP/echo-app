@@ -47,7 +47,7 @@ function formatEthValue(value: number | string) {
     maximumFractionDigits: 6,
   }).format(safeValue);
 
-  return `\u039E ${formattedValue} ETH`;
+  return `Ξ ${formattedValue} ETH`;
 }
 
 function formatReadableItemLabel(amount: number | string, itemLabel?: string | null) {
@@ -66,8 +66,8 @@ function formatReadableItemLabel(amount: number | string, itemLabel?: string | n
 }
 
 function showAuditNotice() {
-  const title = "Relat\u00F3rio de auditoria";
-  const message = "Esse download ainda ser\u00E1 ligado ao arquivo final da auditoria.";
+  const title = "Relatório de auditoria";
+  const message = "Esse download ainda será ligado ao arquivo final da auditoria.";
 
   if (Platform.OS === "web") {
     window.alert(`${title}\n\n${message}`);
@@ -118,8 +118,8 @@ async function openTransactionOnSepolia(transactionHash: string) {
 
     await Linking.openURL(transactionUrl);
   } catch {
-    const title = "Unable to open transaction";
-    const message = "We couldn't open the Sepolia explorer for this hash right now.";
+    const title = "N�o foi poss�vel abrir a transa��o";
+    const message = "N�o conseguimos abrir o explorador da Sepolia para este hash agora.";
 
     if (Platform.OS === "web") {
       window.alert(`${title}\n\n${message}`);
@@ -241,7 +241,7 @@ export default function DonationTimelinePage({ navigation, route }: DonationTime
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : "N\u00E3o foi poss\u00EDvel carregar os eventos da doa\u00E7\u00E3o.");
+        setErrorMessage(error instanceof Error ? error.message : "Não foi possível carregar os eventos da doação.");
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -340,7 +340,7 @@ export default function DonationTimelinePage({ navigation, route }: DonationTime
                   <View className="flex-1 pb-6">
                     <View className="flex-row items-start justify-between gap-3">
                       <Text className="flex-1 pt-2 text-[24px] font-semibold leading-7 text-[#202124]">
-                        {event.statusString || "Unknown event"}
+                        {event.statusString || "Evento desconhecido"}
                       </Text>
                       <View className="mt-2 rounded-full bg-[#F4F7F4] px-2.5 py-1">
                         <Text className="text-[10px] font-medium text-[#7A8480]">
@@ -440,7 +440,7 @@ export default function DonationTimelinePage({ navigation, route }: DonationTime
                             }}
                             style={({ pressed }) => (pressed ? { opacity: 0.74 } : undefined)}
                           >
-                            <Text className="text-[10px] font-semibold text-[#315FCB]">View tx</Text>
+                            <Text className="text-[10px] font-semibold text-[#315FCB]">Ver tx</Text>
                           </Pressable>
                         </View>
                       ) : null}

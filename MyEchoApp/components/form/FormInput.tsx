@@ -51,7 +51,7 @@ export default function FormInput({
           >
             <Ionicons name="information-circle-outline" size={16} color="#5C8F6A" />
             <Text className="text-[11px] font-semibold uppercase tracking-[1px] text-[#5C8F6A]">
-              Info
+              Ajuda
             </Text>
           </Pressable>
         ) : null}

@@ -18,69 +18,26 @@ import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDt
 const defaultBlogImage = require("../assets/splash-icon.png");
 
 const impactStats = [
-  { label: "LIVES IMPACTED", value: "50", helper: "People" },
-  { label: "MEALS DONATED", value: "124", helper: "kg" },
-  { label: "REFOREST.", value: "124", helper: "Trees" },
-] as const;
-
-const featuredProjectMocks: readonly ProjectData[] = [
-  {
-    title: "ONG Rural",
-    progressLabel: "42% reached",
-    goal: "R$8,000 toward the goal",
-    progress: 42,
-    tag: "Urgent",
-    theme: "education",
-  },
-  {
-    title: "Reforest",
-    progressLabel: "85% reached",
-    goal: "R$1,250 remaining",
-    progress: 85,
-    theme: "forest",
-  },
-  {
-    title: "Water for All",
-    progressLabel: "61% reached",
-    goal: "R$3,400 toward the goal",
-    progress: 61,
-    theme: "water",
-  },
-] as const;
-
-const recommendedProjectMocks: readonly ProjectData[] = [
-  {
-    title: "Amazon Reforestation",
-    progressLabel: "65% reached",
-    goal: "R$12,000 toward the goal",
-    progress: 65,
-    remaining: "3 days left",
-    theme: "forest",
-  },
-  {
-    title: "ONG Rural",
-    progressLabel: "42% reached",
-    goal: "R$8,000 toward the goal",
-    progress: 42,
-    theme: "education",
-  },
+  { label: "VIDAS IMPACTADAS", value: "50", helper: "pessoas" },
+  { label: "ALIMENTOS DOADOS", value: "124", helper: "kg" },
+  { label: "REFLOREST.", value: "124", helper: "árvores" },
 ] as const;
 
 const defaultContributionMix = [
-  { label: "EDUCATION", value: 45, color: "#3564C9" },
-  { label: "FOOD SECURITY", value: 35, color: "#68A241" },
-  { label: "CLEAN WATER", value: 20, color: "#74A8FF" },
+  { label: "EDUCACAO", value: 45, color: "#3564C9" },
+  { label: "SEGURANCA ALIMENTAR", value: 35, color: "#68A241" },
+  { label: "AGUA POTAVEL", value: 20, color: "#74A8FF" },
 ] as const;
 
 const contributionMixColors = ["#3564C9", "#68A241", "#74A8FF", "#D79A2B", "#A65FD8"] as const;
 
-const fallbackBlogPost = {
-  id: null as string | null,
-  title: "Lua's first day at the new Learning Center",
-  imageUrl: null as string | null,
-  publishedLabel: "2 hours ago",
-  description: "Your R$25.00 contribution helped open another class with school supplies and meals.",
-  projectTitle: undefined as string | undefined,
+type RecommendedBlogPost = {
+  id: string;
+  title: string;
+  imageUrl: string | null;
+  publishedLabel: string;
+  description: string;
+  projectTitle?: string;
 };
 
 function formatRelativeTime(isoDate: string) {
@@ -88,11 +45,11 @@ function formatRelativeTime(isoDate: string) {
   const diffInHours = Math.max(1, Math.round((Date.now() - publishedAt) / (1000 * 60 * 60)));
 
   if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+    return `${diffInHours} hora${diffInHours === 1 ? "" : "s"} atrás`;
   }
 
   const diffInDays = Math.round(diffInHours / 24);
-  return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+  return `${diffInDays} dia${diffInDays === 1 ? "" : "s"} atrás`;
 }
 
 function normalizeProgress(progress: number) {
@@ -105,25 +62,20 @@ function normalizeImageUrl(imageUrl?: string | null) {
   return trimmedImageUrl ? trimmedImageUrl : null;
 }
 
-function buildProjectCards(
-  apiProjects: readonly ProjectHeaderDto[],
-  fallbackProjects: readonly ProjectData[],
-): ProjectData[] {
-  if (apiProjects.length === 0) {
-    return [...fallbackProjects];
-  }
+function buildProjectCards(apiProjects: readonly ProjectHeaderDto[]): ProjectData[] {
+  const themeByIndex: readonly ProjectData["theme"][] = ["education", "forest", "water"];
 
   return apiProjects.map((project, index) => {
-    const fallback = fallbackProjects[index % fallbackProjects.length];
     const normalizedProgress = normalizeProgress(Number(project.progress));
 
     return {
-      ...fallback,
       id: project.id,
       title: project.title,
+      goal: project.description,
       imageUrl: normalizeImageUrl(project.mainImage),
       progress: normalizedProgress,
-      progressLabel: `${normalizedProgress}% reached`,
+      progressLabel: `${normalizedProgress}% alcançado`,
+      theme: themeByIndex[index % themeByIndex.length],
     };
   });
 }
@@ -157,13 +109,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   const { currentUser } = useUserStore();
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [isLoadingHomeData, setIsLoadingHomeData] = useState(true);
-  const [featuredProjects, setFeaturedProjects] = useState<ProjectData[]>([...featuredProjectMocks]);
-  const [recommendedProjects, setRecommendedProjects] = useState<ProjectData[]>([
-    ...recommendedProjectMocks,
-  ]);
+  const [featuredProjects, setFeaturedProjects] = useState<ProjectData[]>([]);
+  const [recommendedProjects, setRecommendedProjects] = useState<ProjectData[]>([]);
   const [contributionMix, setContributionMix] =
     useState<Array<{ label: string; value: number; color: string }>>([...defaultContributionMix]);
-  const [recommendedBlogPost, setRecommendedBlogPost] = useState(fallbackBlogPost);
+  const [recommendedBlogPost, setRecommendedBlogPost] = useState<RecommendedBlogPost | null>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -216,11 +166,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         }
 
         if (trendingResult.status === "fulfilled") {
-          setFeaturedProjects(buildProjectCards(trendingResult.value.items, featuredProjectMocks));
+          setFeaturedProjects(buildProjectCards(trendingResult.value.items));
         }
 
         if (forYouResult.status === "fulfilled") {
-          setRecommendedProjects(buildProjectCards(forYouResult.value.items, recommendedProjectMocks));
+          setRecommendedProjects(buildProjectCards(forYouResult.value.items));
         }
 
         if (distributionResult.status === "fulfilled") {
@@ -236,9 +186,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
               title: blogPost.title,
               imageUrl: normalizeImageUrl(blogPost.headerImage),
               publishedLabel: formatRelativeTime(blogPost.createdAt),
-              description: blogPost.first100CharsOfContent || fallbackBlogPost.description,
+              description: blogPost.first100CharsOfContent || "",
               projectTitle: undefined,
             });
+          } else {
+            setRecommendedBlogPost(null);
           }
         }
       } finally {
@@ -270,7 +222,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   };
 
   const handleOpenRecommendedBlogPost = () => {
-    if (!recommendedBlogPost.id) {
+    if (!recommendedBlogPost?.id) {
       return;
     }
 
@@ -299,17 +251,17 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
               </View>
             ) : (
               <>
-                <Text className="text-[28px] font-normal text-black">Hello, {firstName}</Text>
-                <Text className="text-[28px] font-medium leading-8 text-[#206223]">You've been making some real impact.</Text>
+                <Text className="text-[28px] font-normal text-black">Olá, {firstName}</Text>
+                <Text className="text-[28px] font-medium leading-8 text-[#206223]">Você tem gerado um impacto real.</Text>
               </>
             )}
-        </View>
+          </View>
         </View>
 
         <ImpactSummaryCard
           impactedLives={impactStats[0].value}
           helper={impactStats[0].helper}
-          description="Your monthly contributions provided sustainable meals and education for families across South America."
+          description="Suas contribuições mensais levaram alimentação e educação sustentável para famílias em toda a América do Sul."
           isLoading={isLoadingHomeData}
         />
 
@@ -331,14 +283,14 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         </View>
 
         <ProjectCarousel
-          title="Featured projects"
+          title="Projetos em destaque"
           projects={featuredProjects}
           onProjectPress={handleOpenProject}
           isLoading={isLoadingHomeData}
         />
 
         <ProjectCarousel
-          title="Projects for you"
+          title="Projetos para você"
           projects={recommendedProjects}
           onProjectPress={handleOpenProject}
           isLoading={isLoadingHomeData}
@@ -346,7 +298,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
 
         <View className="gap-4 rounded-[24px] border border-[#E7ECE8] bg-white px-4 py-4">
           <View className="flex-row items-center justify-between">
-            <SectionTitle>Global Contribution Mix</SectionTitle>
+            <SectionTitle>Distribuição global das contribuições</SectionTitle>
             <Ionicons name="information-circle-outline" size={18} color="#98A09B" />
           </View>
           {isLoadingHomeData ? (
@@ -381,7 +333,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         </View>
 
         <View className="gap-4">
-          <SectionTitle>Your impact in action</SectionTitle>
+          <SectionTitle>Seu impacto em ação</SectionTitle>
           {isLoadingHomeData ? (
             <View className="overflow-hidden rounded-[28px] bg-[#EEF3F0] p-4">
               <SkeletonBlock height={240} borderRadius={24} />
@@ -394,11 +346,10 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
                 <SkeletonBlock height={14} width="58%" borderRadius={999} />
               </View>
             </View>
-          ) : (
+          ) : recommendedBlogPost ? (
             <Pressable
               onPress={handleOpenRecommendedBlogPost}
-              disabled={!recommendedBlogPost.id}
-              style={({ pressed }) => (pressed && recommendedBlogPost.id ? { opacity: 0.92 } : undefined)}
+              style={({ pressed }) => (pressed ? { opacity: 0.92 } : undefined)}
             >
               <ImageBackground
                 source={recommendedBlogPost.imageUrl ? { uri: recommendedBlogPost.imageUrl } : defaultBlogImage}
@@ -414,7 +365,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
                   <View className="gap-3">
                     <View className="flex-row items-center gap-2">
                       <View className="rounded-full bg-[#4A73D9] px-2 py-1">
-                        <Text className="text-[9px] font-bold uppercase text-white">NEW UPDATE</Text>
+                        <Text className="text-[9px] font-bold uppercase text-white">NOVA ATUALIZACAO</Text>
                       </View>
                       <Text className="text-[11px] font-medium text-[#E3E7ED]">
                         {recommendedBlogPost.publishedLabel}
@@ -430,11 +381,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
                 </LinearGradient>
               </ImageBackground>
             </Pressable>
-          )}
+          ) : null}
         </View>
 
         <Pressable className="self-center pt-2" onPress={handleSignOut}>
-          <Text className="text-[13px] font-bold text-[#5C635F]">Sign out</Text>
+          <Text className="text-[13px] font-bold text-[#5C635F]">Sair</Text>
         </Pressable>
       </ScrollView>
     </AppLayout>

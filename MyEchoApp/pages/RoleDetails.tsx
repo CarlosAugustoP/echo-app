@@ -132,7 +132,7 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
       } else if (error instanceof Error) {
         setSubmitError(error.message);
       } else {
-        setSubmitError("We couldn't complete your registration right now. Please try again.");
+        setSubmitError("Não foi possível concluir seu cadastro agora. Tente novamente.");
       }
     } finally {
       setIsSubmitting(false);
@@ -149,24 +149,24 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
       >
         {isNgo ? (
           <Form
-            formTitle={step === "details" ? "NGO Registration" : "NGO Address"}
+            formTitle={step === "details" ? "Cadastro da ONG" : "Endereço da ONG"}
             formDescription={
               step === "details"
-                ? "Enter your institution's details to begin your verified impact journey."
-                : "Now tell us where your organization is based so we can complete your signup."
+                ? "Preencha os dados da sua instituição para iniciar uma jornada de impacto verificado."
+                : "Agora informe onde sua organização está localizada para concluirmos o cadastro."
             }
-            noticeTitle="Blockchain Audit"
-            noticeDescription="Your data and transactions are protected by distributed cryptography for traceability and immutable records."
+            noticeTitle="Auditoria em blockchain"
+            noticeDescription="Seus dados e transações são protegidos por criptografia distribuída, garantindo rastreabilidade e registros imutáveis."
             consentLabel={
               step === "address" ? (
                 <>
-                  I accept the <Strong className="text-echoDarkGreen">transparency terms</Strong> and agree to the ethical use of data.
+                  Eu aceito os <Strong className="text-echoDarkGreen">termos de transparência</Strong> e concordo com o uso ético dos dados.
                 </>
               ) : undefined
             }
             consentValue={step === "address" ? acceptedTerms : undefined}
             onConsentChange={step === "address" ? setAcceptedTerms : undefined}
-            submitLabel={step === "details" ? "Continue to address" : isSubmitting ? "Completing registration..." : "Complete registration"}
+            submitLabel={step === "details" ? "Continuar para endereço" : isSubmitting ? "Concluindo cadastro..." : "Concluir cadastro"}
             onSubmit={step === "details" ? goToAddressStep : handleSignup}
             submitDisabled={
               step === "details"
@@ -176,11 +176,11 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             footer={
               step === "address" ? (
                 <Pressable onPress={goToDetailsStep}>
-                  <Text className="text-center text-base font-bold text-echoDarkGreen">Back to account details</Text>
+                  <Text className="text-center text-base font-bold text-echoDarkGreen">Voltar para os dados da conta</Text>
                 </Pressable>
               ) : (
                 <View className="rounded-2xl border border-[#D8E1DA] bg-[#F7FAF8] px-4 py-3">
-                  <Text className="text-center text-sm text-slate-600">Step 1 of 2: account details</Text>
+                  <Text className="text-center text-sm text-slate-600">Etapa 1 de 2: dados da conta</Text>
                 </View>
               )
             }
@@ -188,8 +188,8 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             {step === "details" ? (
               <>
                 <FormInput
-                  title="Organization Name"
-                  placeholder="Ex: Hope Institute"
+                  title="Nome da organização"
+                  placeholder="Ex: Instituto Esperança"
                   iconName="business-outline"
                   autoCapitalize="words"
                   textContentType="organizationName"
@@ -205,8 +205,8 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setNgoForm((current) => ({ ...current, taxId: value }))}
                 />
                 <FormInput
-                  title="Corporate Email"
-                  placeholder="Ex: contact@ngo.org"
+                  title="E-mail institucional"
+                  placeholder="Ex: contato@ong.org"
                   iconName="at-outline"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -215,18 +215,18 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setNgoForm((current) => ({ ...current, email: value }))}
                 />
                 <FormInput
-                  title="Ethereum Wallet Address"
+                  title="Endereço da carteira Ethereum"
                   placeholder="Ex: 0xA1b2C3d4E5f6..."
                   iconName="wallet-outline"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  infoText="This is the Ethereum wallet address where your organization can receive blockchain-based donations. Use a wallet you control and double-check the address before submitting."
+                  infoText="Este é o endereço da carteira Ethereum onde sua organização pode receber doações em blockchain. Use uma carteira sob seu controle e confira o endereço antes de enviar."
                   value={ngoForm.walletAddress}
                   onChangeText={(value) => setNgoForm((current) => ({ ...current, walletAddress: value }))}
                 />
                 <FormInput
-                  title="Access Password"
-                  placeholder="Enter your password"
+                  title="Senha de acesso"
+                  placeholder="Digite sua senha"
                   iconName="lock-closed-outline"
                   secureTextEntry
                   autoCapitalize="none"
@@ -238,18 +238,18 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             ) : (
               <>
                 <View className="rounded-2xl border border-[#D8E1DA] bg-[#F7FAF8] px-4 py-3">
-                  <Text className="text-center text-sm text-slate-600">Step 2 of 2: address and confirmation</Text>
+                  <Text className="text-center text-sm text-slate-600">Etapa 2 de 2: endereço e confirmação</Text>
                 </View>
                 <FormInput
-                  title="Street"
-                  placeholder="Ex: Liberty Avenue"
+                  title="Rua"
+                  placeholder="Ex: Avenida Liberdade"
                   iconName="map-outline"
                   autoCapitalize="words"
                   value={ngoAddress.street}
                   onChangeText={(value) => setNgoAddress((current) => ({ ...current, street: value }))}
                 />
                 <FormInput
-                  title="Number"
+                  title="Número"
                   placeholder="Ex: 1200"
                   iconName="home-outline"
                   keyboardType="number-pad"
@@ -257,8 +257,8 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setNgoAddress((current) => ({ ...current, number: value }))}
                 />
                 <FormInput
-                  title="Neighborhood"
-                  placeholder="Ex: Downtown"
+                  title="Bairro"
+                  placeholder="Ex: Centro"
                   iconName="location-outline"
                   autoCapitalize="words"
                   value={ngoAddress.neighborhood}
@@ -266,22 +266,22 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                 />
                 <FormInput
                   title="City"
-                  placeholder="Ex: San Francisco"
+                  placeholder="Ex: São Paulo"
                   iconName="business-outline"
                   autoCapitalize="words"
                   value={ngoAddress.city}
                   onChangeText={(value) => setNgoAddress((current) => ({ ...current, city: value }))}
                 />
                 <FormInput
-                  title="State"
-                  placeholder="Ex: California"
+                  title="Estado"
+                  placeholder="Ex: Ceará"
                   iconName="flag-outline"
                   autoCapitalize="words"
                   value={ngoAddress.state}
                   onChangeText={(value) => setNgoAddress((current) => ({ ...current, state: value }))}
                 />
                 <FormInput
-                  title="ZIP Code"
+                  title="CEP"
                   placeholder="Ex: 60150-161"
                   iconName="mail-open-outline"
                   keyboardType="number-pad"
@@ -289,7 +289,7 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setNgoAddress((current) => ({ ...current, zipCode: value }))}
                 />
                 <FormInput
-                  title="Country Code"
+                  title="Código do país"
                   placeholder="Ex: BR"
                   iconName="earth-outline"
                   autoCapitalize="characters"
@@ -301,24 +301,24 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
           </Form>
         ) : (
           <Form
-            formTitle={step === "details" ? "Join our journey." : "Your Address"}
+            formTitle={step === "details" ? "Faça parte da jornada." : "Seu endereço"}
             formDescription={
               step === "details"
-                ? "Create your donor account to discover verified causes and track the impact of every contribution."
-                : "One last step: add your address details so we can complete your account setup."
+                ? "Crie sua conta de doador para descobrir causas verificadas e acompanhar o impacto de cada contribuição."
+                : "Última etapa: adicione seus dados de endereço para concluirmos sua conta."
             }
-            noticeTitle="Secure Donations"
-            noticeDescription="Your profile and contribution history stay protected so every donation remains transparent and easy to follow."
+            noticeTitle="Doações seguras"
+            noticeDescription="Seu perfil e histórico de contribuições ficam protegidos para que cada doação seja transparente e fácil de acompanhar."
             consentLabel={
               step === "address" ? (
                 <>
-                  I agree to the <Strong className="text-echoDarkGreen">community terms</Strong> and responsible platform use.
+                  Eu concordo com os <Strong className="text-echoDarkGreen">termos da comunidade</Strong> e com o uso responsável da plataforma.
                 </>
               ) : undefined
             }
             consentValue={step === "address" ? acceptedTerms : undefined}
             onConsentChange={step === "address" ? setAcceptedTerms : undefined}
-            submitLabel={step === "details" ? "Continue to address" : isSubmitting ? "Creating account..." : "Create donor account"}
+            submitLabel={step === "details" ? "Continuar para endereço" : isSubmitting ? "Criando conta..." : "Criar conta de doador"}
             onSubmit={step === "details" ? goToAddressStep : handleSignup}
             submitDisabled={
               step === "details"
@@ -328,11 +328,11 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             footer={
               step === "address" ? (
                 <Pressable onPress={goToDetailsStep}>
-                  <Text className="text-center text-base font-bold text-echoDarkGreen">Back to account details</Text>
+                  <Text className="text-center text-base font-bold text-echoDarkGreen">Voltar para os dados da conta</Text>
                 </Pressable>
               ) : (
                 <View className="rounded-2xl border border-[#D8E1DA] bg-[#F7FAF8] px-4 py-3">
-                  <Text className="text-center text-sm text-slate-600">Step 1 of 2: account details</Text>
+                  <Text className="text-center text-sm text-slate-600">Etapa 1 de 2: dados da conta</Text>
                 </View>
               )
             }
@@ -340,7 +340,7 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             {step === "details" ? (
               <>
                 <FormInput
-                  title="Full Name"
+                  title="Nome completo"
                   placeholder="Ex: Anna Beatriz Costa"
                   iconName="person-outline"
                   autoCapitalize="words"
@@ -367,18 +367,18 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setDonorForm((current) => ({ ...current, email: value }))}
                 />
                 <FormInput
-                  title="Ethereum Wallet Address"
+                  title="Endereço da carteira Ethereum"
                   placeholder="Ex: 0xA1b2C3d4E5f6..."
                   iconName="wallet-outline"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  infoText="This is the Ethereum wallet address linked to your donor profile. Use a wallet you control so you can track blockchain-based donations and related activity."
+                  infoText="Este é o endereço da carteira Ethereum vinculado ao seu perfil de doador. Use uma carteira sob seu controle para acompanhar doações em blockchain e atividades relacionadas."
                   value={donorForm.walletAddress}
                   onChangeText={(value) => setDonorForm((current) => ({ ...current, walletAddress: value }))}
                 />
                 <FormInput
-                  title="Access Password"
-                  placeholder="Create a password"
+                  title="Senha de acesso"
+                  placeholder="Crie uma senha"
                   iconName="lock-closed-outline"
                   secureTextEntry
                   autoCapitalize="none"
@@ -390,18 +390,18 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
             ) : (
               <>
                 <View className="rounded-2xl border border-[#D8E1DA] bg-[#F7FAF8] px-4 py-3">
-                  <Text className="text-center text-sm text-slate-600">Step 2 of 2: address and confirmation</Text>
+                  <Text className="text-center text-sm text-slate-600">Etapa 2 de 2: endereço e confirmação</Text>
                 </View>
                 <FormInput
-                  title="Street"
-                  placeholder="Ex: Maple Street"
+                  title="Rua"
+                  placeholder="Ex: Rua das Flores"
                   iconName="map-outline"
                   autoCapitalize="words"
                   value={donorAddress.street}
                   onChangeText={(value) => setDonorAddress((current) => ({ ...current, street: value }))}
                 />
                 <FormInput
-                  title="Number"
+                  title="Número"
                   placeholder="Ex: 455"
                   iconName="home-outline"
                   keyboardType="number-pad"
@@ -409,8 +409,8 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setDonorAddress((current) => ({ ...current, number: value }))}
                 />
                 <FormInput
-                  title="Neighborhood"
-                  placeholder="Ex: Midtown"
+                  title="Bairro"
+                  placeholder="Ex: Centro"
                   iconName="location-outline"
                   autoCapitalize="words"
                   value={donorAddress.neighborhood}
@@ -418,22 +418,22 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                 />
                 <FormInput
                   title="City"
-                  placeholder="Ex: San Francisco"
+                  placeholder="Ex: São Paulo"
                   iconName="business-outline"
                   autoCapitalize="words"
                   value={donorAddress.city}
                   onChangeText={(value) => setDonorAddress((current) => ({ ...current, city: value }))}
                 />
                 <FormInput
-                  title="State"
-                  placeholder="Ex: California"
+                  title="Estado"
+                  placeholder="Ex: Ceará"
                   iconName="flag-outline"
                   autoCapitalize="words"
                   value={donorAddress.state}
                   onChangeText={(value) => setDonorAddress((current) => ({ ...current, state: value }))}
                 />
                 <FormInput
-                  title="ZIP Code"
+                  title="CEP"
                   placeholder="Ex: 60165-081"
                   iconName="mail-open-outline"
                   keyboardType="number-pad"
@@ -441,7 +441,7 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
                   onChangeText={(value) => setDonorAddress((current) => ({ ...current, zipCode: value }))}
                 />
                 <FormInput
-                  title="Country Code"
+                  title="Código do país"
                   placeholder="Ex: BR"
                   iconName="earth-outline"
                   autoCapitalize="characters"
@@ -463,13 +463,13 @@ export default function RoleDetailsPage({ navigation, route }: RoleDetailsScreen
           className="rounded-2xl border border-[#D8E1DA] bg-white px-6 py-4"
           onPress={() => navigation.goBack()}
         >
-          <Text className="text-center text-base font-bold text-echoDarkGreen">Back to role selection</Text>
+          <Text className="text-center text-base font-bold text-echoDarkGreen">Voltar para a seleção de perfil</Text>
         </Pressable>
 
         <View className="flex-row flex-wrap items-center justify-center gap-1">
-          <Text className="text-base text-slate-600">Already have an account?</Text>
+          <Text className="text-base text-slate-600">Já tem uma conta?</Text>
           <Pressable onPress={() => navigation.navigate("Signin")}>
-            <Strong className="text-base text-echoDarkGreen underline">Go to sign in</Strong>
+            <Strong className="text-base text-echoDarkGreen underline">Ir para o login</Strong>
           </Pressable>
         </View>
       </ScrollView>

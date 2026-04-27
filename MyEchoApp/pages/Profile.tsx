@@ -51,7 +51,7 @@ function formatWalletLabel(walletAddress?: string | null) {
   const normalizedValue = walletAddress?.trim();
 
   if (!normalizedValue) {
-    return "Wallet not connected";
+    return "Carteira não conectada";
   }
 
   if (normalizedValue.length <= 14) {
@@ -63,24 +63,24 @@ function formatWalletLabel(walletAddress?: string | null) {
 
 function formatAddressLine(address?: AddressRequestDto | null) {
   if (!address) {
-    return "Nenhum endereco cadastrado";
+    return "Nenhum endereço cadastrado";
   }
 
   const numberLabel = address.number !== null && address.number !== undefined ? `${address.number}` : "S/N";
   const parts = [address.street, numberLabel, address.neighborhood].filter((value) => value && value.trim().length > 0);
-  return parts.length > 0 ? parts.join(", ") : "Nenhum endereco cadastrado";
+  return parts.length > 0 ? parts.join(", ") : "Nenhum endereço cadastrado";
 }
 
 function formatAddressDetail(address?: AddressRequestDto | null) {
   if (!address) {
-    return "Adicione seu endereco para manter o perfil completo.";
+    return "Adicione seu endereço para manter o perfil completo.";
   }
 
   const parts = [address.city, address.state, address.zipCode, address.countryCode]
     .filter((value) => value && value.trim().length > 0)
     .join(" • ");
 
-  return parts || "Adicione seu endereco para manter o perfil completo.";
+  return parts || "Adicione seu endereço para manter o perfil completo.";
 }
 
 function createEmptyAddress(): AddressRequestDto {
@@ -240,7 +240,7 @@ function EditProfileModal({
       : target === "profilePicture"
         ? "Editar foto do perfil"
         : target === "address"
-          ? "Editar endereco"
+          ? "Editar endereço"
           : "";
 
   const modalDescription =
@@ -249,7 +249,7 @@ function EditProfileModal({
       : target === "profilePicture"
         ? "Escolha uma imagem da sua galeria para atualizar a foto do perfil."
         : target === "address"
-          ? "Atualize os dados do endereco vinculados ao seu perfil."
+          ? "Atualize os dados do endereço vinculados ao seu perfil."
           : "";
 
   return (
@@ -321,12 +321,12 @@ function EditProfileModal({
               <View className="gap-3">
                 {[
                   ["street", "Rua", "Ex: Av. Paulista"],
-                  ["number", "Numero", "Ex: 1200"],
+                  ["number", "Número", "Ex: 1200"],
                   ["neighborhood", "Bairro", "Ex: Centro"],
-                  ["city", "Cidade", "Ex: Sao Paulo"],
+                  ["city", "Cidade", "Ex: São Paulo"],
                   ["state", "Estado", "Ex: SP"],
                   ["zipCode", "CEP", "Ex: 01310-100"],
-                  ["countryCode", "Pais", "Ex: BR"],
+                  ["countryCode", "País", "Ex: BR"],
                 ].map(([field, label, placeholder]) => (
                   <View key={field} className="gap-2">
                     <Text className="text-[12px] font-semibold uppercase tracking-[1.7px] text-[#6F7A75]">{label}</Text>
@@ -353,7 +353,7 @@ function EditProfileModal({
 
           <View className="mt-5 gap-3">
             <Button
-              label={isSaving ? "Salvando..." : "Salvar alteracoes"}
+              label={isSaving ? "Salvando..." : "Salvar alterações"}
               onPress={onSave}
               disabled={isSaving}
               className="rounded-[18px]"
@@ -467,7 +467,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load your profile right now.");
+        setErrorMessage(error instanceof Error ? error.message : "Não foi possível carregar seu perfil agora.");
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -518,7 +518,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permissionResult.granted) {
-          Alert.alert("Permissao necessaria", "Permita acesso as fotos para escolher uma imagem do perfil.");
+          Alert.alert("Permissão necessária", "Permita acesso às fotos para escolher uma imagem do perfil.");
           return;
         }
       }
@@ -540,14 +540,14 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
       const previewUri = asset?.uri?.trim() || "";
 
       if (!base64) {
-        setSaveError("Nao foi possivel ler a imagem selecionada.");
+        setSaveError("Não foi possível ler a imagem selecionada.");
         return;
       }
 
       setProfilePictureDraft(base64);
       setProfilePicturePreviewUri(previewUri || `data:image/jpeg;base64,${base64}`);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Nao foi possivel abrir a galeria.");
+      setSaveError(error instanceof Error ? error.message : "Não foi possível abrir a galeria.");
     } finally {
       setIsPickingImage(false);
     }
@@ -589,7 +589,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
       setCurrentUser(mergedUpdatedUser);
       setEditTarget(null);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Nao foi possivel atualizar o perfil agora.");
+      setSaveError(error instanceof Error ? error.message : "Não foi possível atualizar o perfil agora.");
     } finally {
       setIsSavingProfile(false);
     }
@@ -637,7 +637,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
             <View className="items-center gap-3">
               <View className="flex-row items-center justify-center gap-3">
                 <Text className="text-center text-[38px] font-semibold leading-[42px] text-[#202124]">
-                  {user?.name ?? "Echo Member"}
+                  {user?.name ?? "Membro Echo"}
                 </Text>
                 <PencilAction onPress={() => openEditor("name")} small />
               </View>
@@ -796,14 +796,14 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
             {errorMessage ? (
               <View className="rounded-[24px] border border-[#F2D4D4] bg-[#FFF7F7] px-4 py-4">
-                <Text className="text-[15px] font-semibold text-[#A33A3A]">Could not load everything</Text>
+                <Text className="text-[15px] font-semibold text-[#A33A3A]">Não foi possível carregar tudo</Text>
                 <Text className="mt-2 text-[13px] leading-5 text-[#8B5B5B]">{errorMessage}</Text>
               </View>
             ) : null}
 
             <View className="gap-3">
               <Text className="px-1 text-[11px] font-semibold uppercase tracking-[1.8px] text-[#8D9893]">
-                Connected Wallet
+                Carteira conectada
               </Text>
               <View className="rounded-[26px] bg-white px-4 py-4">
                 <View className="flex-row items-center gap-3">
@@ -813,11 +813,11 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
                   <View className="flex-1">
                     <Text className="text-[15px] font-semibold text-[#202124]">{formatWalletLabel(user?.walletAddress)}</Text>
-                    <Text className="mt-1 text-[12px] text-[#7A8480]">{user?.email ?? "No email available"}</Text>
+                    <Text className="mt-1 text-[12px] text-[#7A8480]">{user?.email ?? "Nenhum e-mail disponível"}</Text>
                   </View>
 
                   <View className="rounded-full bg-[#EEF6EE] px-3 py-1.5">
-                    <Text className="text-[12px] font-medium text-[#2F7D32]">Connected</Text>
+                    <Text className="text-[12px] font-medium text-[#2F7D32]">Conectada</Text>
                   </View>
                 </View>
               </View>
@@ -826,7 +826,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
             <View className="gap-3">
               <View className="flex-row items-center justify-between px-1">
                 <Text className="text-[11px] font-semibold uppercase tracking-[1.8px] text-[#8D9893]">
-                  Address
+                  Endereço
                 </Text>
                 <PencilAction onPress={() => openEditor("address")} small />
               </View>
@@ -847,14 +847,14 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
             <View className="gap-3">
               <Text className="px-1 text-[11px] font-semibold uppercase tracking-[1.8px] text-[#8D9893]">
-                Preferences
+                Preferências
               </Text>
 
               <View className="gap-3">
                 <PreferenceRow
                   icon="notifications-outline"
-                  title="Push notifications"
-                  description="Get updates about your donations and profile activity."
+                  title="Notificações"
+                  description="Receba atualizações sobre suas doações e atividades do perfil."
                   rightSlot={
                     <Switch
                       value={notificationsEnabled}
@@ -867,8 +867,8 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
                 <PreferenceRow
                   icon="log-out-outline"
-                  title="Sign out"
-                  description="Leave this session safely and return to login."
+                  title="Sair"
+                  description="Encerrar esta sessão com segurança e voltar ao login."
                   rightSlot={<Ionicons name="chevron-forward" size={18} color="#E28A8A" />}
                   onPress={() => {
                     void handleSignOut();

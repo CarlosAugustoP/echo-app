@@ -44,7 +44,7 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
       } else if (error instanceof Error) {
         setSubmitError(error.message);
       } else {
-        setSubmitError("We couldn't sign you in right now. Please try again.");
+        setSubmitError("Não foi possível entrar agora. Tente novamente.");
       }
     } finally {
       setIsSubmitting(false);
@@ -76,7 +76,7 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
             </View>
 
             <Text className="mt-8 text-center text-[21px] font-extrabold leading-9 text-[#3D4540]">
-              "Be the change you wish to see in the world."
+              "Seja a mudança que você deseja ver no mundo."
             </Text>
             <Text className="mt-2 text-center text-[16px] text-[#515853]">
               Mahatma Gandhi
@@ -85,9 +85,9 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
 
           <View className="mt-10 gap-6">
             <Form
-              formTitle="Welcome back"
-              formDescription="Enter your email and password to access your account."
-              submitLabel={isSubmitting ? "Signing in..." : "Sign in"}
+              formTitle="Bem-vindo de volta"
+              formDescription="Informe seu e-mail e senha para acessar sua conta."
+              submitLabel={isSubmitting ? "Entrando..." : "Entrar"}
               onSubmit={handleLogin}
               submitDisabled={!isFormComplete || isSubmitting}
             >
@@ -102,8 +102,8 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
                 onChangeText={setEmail}
               />
               <FormInput
-                title="Password"
-                placeholder="Enter your password"
+                title="Senha"
+                placeholder="Digite sua senha"
                 iconName="lock-closed-outline"
                 secureTextEntry
                 autoCapitalize="none"
@@ -121,14 +121,14 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
           </View>
 
           <View className="mt-6 flex-row flex-wrap items-center justify-center gap-1">
-            <Text className="text-[17px] text-[#4E5550]">Don't have an account?</Text>
+            <Text className="text-[17px] text-[#4E5550]">Ainda não tem uma conta?</Text>
             <Pressable onPress={() => navigation.navigate("Signup")}>
-              <Text className="text-[17px] font-bold text-[#2F8B3A]">Create one</Text>
+              <Text className="text-[17px] font-bold text-[#2F8B3A]">Criar conta</Text>
             </Pressable>
           </View>
 
           <Text className="mt-10 text-center text-[13px] uppercase tracking-[2px] text-[#8A918C]">
-            (C) 2026 ECHO - TECHNOLOGY FOR THE COMMON GOOD
+            (C) 2026 ECHO - TECNOLOGIA PARA O BEM COMUM
           </Text>
         </View>
       </ScrollView>

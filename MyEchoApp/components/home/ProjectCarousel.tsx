@@ -14,8 +14,6 @@ export type ProjectData = {
   goal: string;
   progress: number;
   imageUrl?: string | null;
-  tag?: string;
-  remaining?: string;
   theme: ProjectTheme;
 };
 
@@ -33,8 +31,6 @@ function ProjectCard({
   goal,
   progress,
   imageUrl,
-  tag,
-  remaining,
   theme,
   compact = false,
   onPress,
@@ -63,16 +59,6 @@ function ProjectCard({
             />
           </View>
         )}
-        {tag ? (
-          <View className="absolute right-3 top-3 rounded-full bg-white px-3 py-2 shadow-[0_4px_10px_rgba(0,0,0,0.08)]">
-            <Text className="text-[12px] font-bold text-[#4A4134]">{tag}</Text>
-          </View>
-        ) : null}
-        {remaining ? (
-          <View className="absolute right-3 top-3 rounded-full bg-[#3F6E3C] px-3 py-2">
-            <Text className="text-[10px] font-bold uppercase tracking-[0.2px] text-white">{remaining}</Text>
-          </View>
-        ) : null}
       </View>
 
     <View className="gap-3 px-1 pt-4">

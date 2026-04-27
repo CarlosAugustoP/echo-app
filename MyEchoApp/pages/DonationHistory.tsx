@@ -14,7 +14,7 @@ const fallbackProjectImage = require("../assets/splash-icon.png");
 const monthNames = [
   "janeiro",
   "fevereiro",
-  "mar\u00E7o",
+  "março",
   "abril",
   "maio",
   "junho",
@@ -51,7 +51,7 @@ function formatEthValue(value: number | string) {
     maximumFractionDigits: 6,
   }).format(numericValue);
 
-  return `\u039E ${formattedValue} ETH`;
+  return `Ξ ${formattedValue} ETH`;
 }
 
 function formatReadableItemLabel(value: string) {
@@ -220,7 +220,7 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : "N\u00E3o foi poss\u00EDvel carregar o hist\u00F3rico agora.");
+        setErrorMessage(error instanceof Error ? error.message : "Não foi possível carregar o histórico agora.");
       } finally {
         if (isMounted) {
           setIsLoadingInitial(false);
@@ -297,7 +297,7 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
       setHistoryItems((currentValue) => [...currentValue, ...result.items]);
       setPageState(result);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "N\u00E3o foi poss\u00EDvel carregar mais contribui\u00E7\u00F5es.");
+      setErrorMessage(error instanceof Error ? error.message : "Não foi possível carregar mais contribuições.");
     } finally {
       setIsLoadingMore(false);
     }
