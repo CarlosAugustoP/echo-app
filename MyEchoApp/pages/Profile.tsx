@@ -24,6 +24,7 @@ import { apiClient } from "../services/apiClient";
 import { clearAccessToken } from "../services/authStorage";
 import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
 import type { AddressRequestDto, UpdateUserRequestDto, UserDto } from "../types/api";
+import { getUserRoleLabel } from "../utils/userRoles";
 
 function parseSafeNumber(value: number | string | undefined | null) {
   const parsedValue = Number(value);
@@ -36,15 +37,7 @@ function formatEchoAmount(value: number | string | undefined | null) {
 }
 
 function formatRoleLabel(role: number | undefined) {
-  if (role === 0) {
-    return "PARCEIRO DE IMPACTO";
-  }
-
-  if (role === 1) {
-    return "APOIADOR DE IMPACTO";
-  }
-
-  return "MEMBRO ECHO";
+  return getUserRoleLabel(role);
 }
 
 function formatWalletLabel(walletAddress?: string | null) {

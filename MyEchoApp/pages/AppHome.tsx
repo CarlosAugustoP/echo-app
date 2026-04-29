@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { ImpactSummaryCard } from "../components/home/ImpactSummaryCard";
+import { NgoHomeContent } from "../components/home/NgoHomeContent";
 import { ProjectCarousel, type ProjectData } from "../components/home/ProjectCarousel";
 import { SectionTitle } from "../components/home/SectionTitle";
 import { StatCard } from "../components/home/StatCard";
@@ -14,6 +15,7 @@ import { apiClient } from "../services/apiClient";
 import { clearAccessToken } from "../services/authStorage";
 import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
 import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDto } from "../types/api";
+import { isNgoUserRole } from "../utils/userRoles";
 
 const defaultBlogImage = require("../assets/splash-icon.png");
 
@@ -149,6 +151,15 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   }, [currentUser, navigation]);
 
   useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    if (isNgoUserRole(currentUser.role)) {
+      setIsLoadingHomeData(false);
+      return;
+    }
+
     let isMounted = true;
 
     const loadHomeData = async () => {
@@ -205,7 +216,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentUser]);
 
   const handleSignOut = async () => {
     await clearAccessToken();
@@ -233,6 +244,10 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   };
 
   const firstName = currentUser?.name?.split(" ")[0] ?? "Carlos";
+
+  if (currentUser && isNgoUserRole(currentUser.role)) {
+    return <NgoHomeContent currentUser={currentUser} isLoadingUser={isLoadingUser} navigation={navigation} />;
+  }
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="inicio">

@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Platform, Pressable, Text, View } from "react-native";
 
 import type { RootStackParamList } from "../../navigation/types";
+import { useUserStore } from "../../stores/userStore";
+import { isNgoUserRole } from "../../utils/userRoles";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-type AuthFooterTab = "inicio" | "historico" | "dashboard" | "perfil";
+type AuthFooterTab = "inicio" | "historico" | "dashboard" | "perfil" | "projetos" | "fornecedores";
 
 type AuthFooterProps = {
   activeTab: AuthFooterTab;
 };
 
-const footerItems: Array<{
+const donorFooterItems: Array<{
   key: AuthFooterTab;
   label: string;
   icon: (isActive: boolean) => ReactNode;
@@ -51,16 +53,74 @@ const footerItems: Array<{
   },
 ];
 
+const ngoFooterItems: Array<{
+  key: AuthFooterTab;
+  label: string;
+  icon: (isActive: boolean) => ReactNode;
+}> = [
+  {
+    key: "inicio",
+    label: "INICIO",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "home" : "home-outline"} size={24} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+  {
+    key: "projetos",
+    label: "PROJETOS",
+    icon: (isActive) => (
+      <MaterialCommunityIcons
+        name={isActive ? "notebook" : "notebook-outline"}
+        size={24}
+        color={isActive ? "#2F7D32" : "#91A2BF"}
+      />
+    ),
+  },
+  {
+    key: "fornecedores",
+    label: "FORNECEDORES",
+    icon: (isActive) => (
+      <MaterialCommunityIcons
+        name={isActive ? "handshake" : "handshake-outline"}
+        size={24}
+        color={isActive ? "#2F7D32" : "#91A2BF"}
+      />
+    ),
+  },
+  {
+    key: "perfil",
+    label: "PERFIL",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "person" : "person-outline"} size={22} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+];
+
 export function AuthFooter({ activeTab }: AuthFooterProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
+  const { currentUser } = useUserStore();
+  const isNgoUser = isNgoUserRole(currentUser?.role);
+  const footerItems = isNgoUser ? ngoFooterItems : donorFooterItems;
+
+  const showUnavailableMessage = (label: string) => {
+    const title = `${label} em breve`;
+    const message = `A navegacao para ${label.toLowerCase()} ainda nao esta disponivel nesta versao.`;
+
+    if (Platform.OS === "web") {
+      window.alert(`${title}\n\n${message}`);
+      return;
+    }
+
+    Alert.alert(title, message);
+  };
 
   const handleTabPress = (tab: AuthFooterTab) => {
     if (tab === activeTab) {
       return;
     }
 
-    if (tab === "inicio") {
+    if (tab === "inicio" || (isNgoUser && tab === "projetos")) {
       if (route.name !== "AppHome") {
         navigation.navigate("AppHome");
       }
@@ -81,6 +141,11 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
         navigation.navigate("Profile");
       }
 
+      return;
+    }
+
+    if (tab === "fornecedores") {
+      showUnavailableMessage("Fornecedores");
       return;
     }
 

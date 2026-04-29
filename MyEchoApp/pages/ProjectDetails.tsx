@@ -21,9 +21,12 @@ import {
 } from "../components/project-details/projectDetailsUtils";
 import { ProjectDetailsScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
+import { useUserStore } from "../stores/userStore";
 import type { GoalDto, ProjectBlogPostHeaderDto, ProjectDto, UserDto } from "../types/api";
+import { isNgoUserRole } from "../utils/userRoles";
 
 export default function ProjectDetailsPage({ navigation, route }: ProjectDetailsScreenProps) {
+  const { currentUser } = useUserStore();
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [manager, setManager] = useState<UserDto | null>(null);
   const [blogPosts, setBlogPosts] = useState<ProjectBlogPostHeaderDto[]>([]);
@@ -96,6 +99,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
     manager?.bio?.trim() ||
     project?.description?.trim() ||
     " ";
+  const canDonate = !isNgoUserRole(currentUser?.role);
 
   const handleOpenDonation = (goal: GoalDto, goalIndex: number) => {
     navigation.navigate("DonationDetails", {
@@ -230,7 +234,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
                   goal={goal}
                   index={index}
                   contractAddress={project?.smartContractAddress}
-                  onDonatePress={() => handleOpenDonation(goal, index)}
+                  onDonatePress={canDonate ? () => handleOpenDonation(goal, index) : undefined}
                 />
               ))
             ) : (
@@ -247,13 +251,15 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
           <View className="gap-3">
             <Text className="text-[24px] font-semibold leading-7 text-[#202124]">Observe seu impacto em ação</Text>
             <ProjectImageCarousel images={galleryImages} />
-            <Button
-              label="Doar agora"
-              onPress={handleOpenPrimaryDonation}
-              className="min-h-[60px] rounded-[18px]"
-              textClassName="text-[17px]"
-              rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}
-            />
+            {canDonate ? (
+              <Button
+                label="Doar agora"
+                onPress={handleOpenPrimaryDonation}
+                className="min-h-[60px] rounded-[18px]"
+                textClassName="text-[17px]"
+                rightIcon={<MaterialCommunityIcons name="hand-heart-outline" size={18} color="#FFFFFF" />}
+              />
+            ) : null}
           </View>
         )}
 

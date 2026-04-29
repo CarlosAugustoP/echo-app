@@ -68,9 +68,8 @@ function ProjectCard({
         </View>
         <View className="flex-row items-center justify-between">
           <Text className="text-[12px] font-bold" style={{ color: progressColor }}>
-            {progressLabel}
+          {progressLabel}
           </Text>
-          <Text className="text-[12px] text-[#6D7470]">{goal}</Text>
         </View>
       </View>
     </Pressable>

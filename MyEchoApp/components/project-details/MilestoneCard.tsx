@@ -82,11 +82,11 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
                   <View className="flex-row items-start justify-between gap-4">
                     <View className="flex-1">
                       <Text className="text-[11px] font-semibold uppercase tracking-[1.8px] text-[#5975C2]">
-                        {`Aporte flexível em ETH`}
+                        {`Aporte flexivel em ETH`}
                       </Text>
                       <Text className="mt-3 text-[34px] font-semibold leading-[36px] text-[#224488]">{`Ξ ${displayPrice}`}</Text>
                       <Text className="mt-3 text-[14px] leading-[20px] text-[#5B6E97]">
-                        {`Essa etapa aceita contribuições abertas. Você escolhe o valor e injeta liquidez direto para a ONG.`}
+                        {`Essa etapa aceita contribuicoes abertas. Voce escolhe o valor e injeta liquidez direto para a ONG.`}
                       </Text>
                     </View>
 
@@ -100,30 +100,31 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
               <View className="mt-8 rounded-[2px] bg-[#F8F9F6] px-4 py-5">
                 <View className="flex-row items-center justify-between">
                   <Text className="text-[16px] font-semibold text-[#414846]">Tipo de item</Text>
-                  <Text className="text-[16px] font-semibold text-[#414846]">{`Preço por un.`}</Text>
+                  <Text className="text-[16px] font-semibold text-[#414846]">{`Preco por un.`}</Text>
                 </View>
 
                 <View className="mt-6 flex-row items-start justify-between gap-4">
                   <Text className="flex-1 text-[16px] leading-[24px] text-[#86908A]">{itemLabel}</Text>
                   <View className="items-end">
                     <Text className="text-[25px] font-normal leading-[30px] text-[#2B5BB5]">{`Ξ ${displayPrice}`}</Text>
-                    <Text className="mt-1 text-[10px] text-[#8A918D]">{`${progressPercentage}% concluído`}</Text>
+                    <Text className="mt-1 text-[10px] text-[#8A918D]">{`${progressPercentage}% concluido`}</Text>
                   </View>
                 </View>
               </View>
             )}
 
-            <Pressable
-              disabled={!onDonatePress}
-              className="mt-8 overflow-hidden rounded-[20px] border border-[#D9F0D8] bg-[#2E7D32] shadow-sm"
-              onPress={onDonatePress}
-              style={({ pressed }) => (pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : undefined)}
-            >
-              <View className="min-h-[94px] flex-row items-center justify-center gap-3 px-1 py-1">
-                <Text className="text-[23px] font-semibold text-white">{`Ir para doação`}</Text>
-                <MaterialCommunityIcons name="hand-heart-outline" size={32} color="#FFFFFF" />
-              </View>
-            </Pressable>
+            {onDonatePress ? (
+              <Pressable
+                className="mt-8 overflow-hidden rounded-[20px] border border-[#D9F0D8] bg-[#2E7D32] shadow-sm"
+                onPress={onDonatePress}
+                style={({ pressed }) => (pressed ? { opacity: 0.92, transform: [{ scale: 0.995 }] } : undefined)}
+              >
+                <View className="min-h-[94px] flex-row items-center justify-center gap-3 px-1 py-1">
+                  <Text className="text-[23px] font-semibold text-white">{`Ir para doação`}</Text>
+                  <MaterialCommunityIcons name="hand-heart-outline" size={32} color="#FFFFFF" />
+                </View>
+              </Pressable>
+            ) : null}
 
             <View className="mt-8 flex-row items-center justify-center gap-2">
               <MaterialCommunityIcons name="check-decagram-outline" size={14} color="#315FCB" />
