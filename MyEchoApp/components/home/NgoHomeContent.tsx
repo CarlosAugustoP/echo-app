@@ -329,6 +329,10 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
     navigation.navigate("ProjectDetails", { projectId });
   };
 
+  const handleCreateProject = () => {
+    navigation.navigate("CreateProject");
+  };
+
   const handleSignOut = async () => {
     await clearAccessToken();
     clearCurrentUser();
@@ -437,7 +441,7 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
 
           <Pressable
             className="mt-1 flex-row items-center justify-center gap-2 rounded-full bg-[#2F7D32] px-5 py-4"
-            onPress={showComingSoonMessage}
+            onPress={handleCreateProject}
             style={({ pressed }) => (pressed ? { opacity: 0.88 } : undefined)}
           >
             <Ionicons name="add" size={18} color="#FFFFFF" />
