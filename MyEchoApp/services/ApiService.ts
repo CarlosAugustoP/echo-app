@@ -292,6 +292,14 @@ export class ApiService {
     return this.request<VendorDto>({ path: `/api/vendors/${vendorId}` });
   }
 
+  async getVendors(query?: QueryParams) {
+    return this.requestPlain<PaginatedList<VendorDto>>({
+      path: "/api/vendors",
+      query,
+      auth: true,
+    });
+  }
+
   async assignVendorToGoal(vendorId: Uuid, goalId: Uuid) {
     return this.request<boolean>({
       method: "POST",
@@ -399,6 +407,28 @@ export class ApiService {
     }
 
     return envelope.data;
+  }
+
+  async requestPlain<TResponse, TBody extends RequestBody = RequestBody>(
+    options: RequestOptions<TBody>,
+  ): Promise<TResponse> {
+    const response = await this.fetchRaw(options);
+    const payload = await this.parseJsonSafely(response);
+
+    if (!response.ok) {
+      throw new ApiServiceError(
+        this.extractErrorMessage(payload, response.status),
+        response.status,
+        this.extractErrorCode(payload),
+        this.extractTimestamp(payload),
+      );
+    }
+
+    if (payload === null) {
+      throw new ApiServiceError("The API returned a successful response without data.", 200, null, null);
+    }
+
+    return payload as TResponse;
   }
 
   async requestNoContent<TBody extends RequestBody = RequestBody>(

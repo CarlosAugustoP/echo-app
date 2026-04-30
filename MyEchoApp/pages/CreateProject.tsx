@@ -5,12 +5,14 @@ import { Pressable, ScrollView, Text, TextInput, type TextInputProps, View } fro
 
 import { Button } from "../components/common/Button";
 import { PageHeader } from "../components/common/PageHeader";
+import { StateCard } from "../components/common/StateCard";
 import { AppLayout } from "../components/layout/AppLayout";
+import { formatEth } from "../components/project-details/projectDetailsUtils";
 import type { CreateProjectScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import type { GoalTypeDto } from "../types/api";
+import type { GoalTypeDto, VendorDto } from "../types/api";
 
-type CreateProjectStep = "general" | "goals";
+type CreateProjectStep = "general" | "goals" | "vendors";
 
 type ProjectFieldProps = TextInputProps & {
   label: string;
@@ -24,6 +26,7 @@ type ProjectFieldProps = TextInputProps & {
 type StepTabsProps = {
   activeStep: CreateProjectStep;
   isGeneralComplete: boolean;
+  isVendorsEnabled: boolean;
   onPressStep: (step: CreateProjectStep) => void;
 };
 
@@ -40,6 +43,15 @@ type GoalTypeResponseShape =
       items?: GoalTypeDto[];
       data?: {
         items?: GoalTypeDto[];
+      } | null;
+    };
+
+type VendorResponseShape =
+  | VendorDto[]
+  | {
+      items?: VendorDto[];
+      data?: {
+        items?: VendorDto[];
       } | null;
     };
 
@@ -108,11 +120,11 @@ function DecorativeCard({ children }: { children: ReactNode }) {
   );
 }
 
-function StepTabs({ activeStep, isGeneralComplete, onPressStep }: StepTabsProps) {
+function StepTabs({ activeStep, isGeneralComplete, isVendorsEnabled, onPressStep }: StepTabsProps) {
   const steps = [
     { key: "general" as const, label: "GERAL", enabled: true },
     { key: "goals" as const, label: "METAS", enabled: isGeneralComplete },
-    { key: "vendors", label: "FORNECEDORES", enabled: false },
+    { key: "vendors" as const, label: "FORNECEDORES", enabled: isVendorsEnabled },
     { key: "review", label: "REVIEW", enabled: false },
   ];
 
@@ -126,9 +138,9 @@ function StepTabs({ activeStep, isGeneralComplete, onPressStep }: StepTabsProps)
           return (
             <Pressable
               key={step.key}
-              disabled={!isEnabled || (step.key !== "general" && step.key !== "goals")}
+              disabled={!isEnabled || (step.key !== "general" && step.key !== "goals" && step.key !== "vendors")}
               onPress={() => {
-                if (step.key === "general" || step.key === "goals") {
+                if (step.key === "general" || step.key === "goals" || step.key === "vendors") {
                   onPressStep(step.key);
                 }
               }}
@@ -148,7 +160,10 @@ function StepTabs({ activeStep, isGeneralComplete, onPressStep }: StepTabsProps)
 
       <View className="flex-row gap-2">
         {steps.map((step) => {
-          const isGreen = step.key === "general" || (step.key === "goals" && isGeneralComplete);
+          const isGreen =
+            step.key === "general" ||
+            (step.key === "goals" && isGeneralComplete) ||
+            (step.key === "vendors" && isVendorsEnabled);
 
           return (
             <View
@@ -226,8 +241,28 @@ function normalizeGoalTypesResponse(payload: GoalTypeResponseShape | null | unde
   return [];
 }
 
+function normalizeVendorsResponse(payload: VendorResponseShape | null | undefined) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload?.data?.items)) {
+    return payload.data.items;
+  }
+
+  return [];
+}
+
 function formatGoalTypeLabel(goalTypeName: string) {
   return goalTypeName.replaceAll("_", " ").trim().toUpperCase();
+}
+
+function formatVendorSupplyLabel(typeItemSupply: string) {
+  return typeItemSupply.replaceAll("_", " ").trim();
 }
 
 function isPositiveNumberInput(value: string) {
@@ -235,8 +270,73 @@ function isPositiveNumberInput(value: string) {
   return Number.isFinite(parsedValue) && parsedValue > 0;
 }
 
+function parseDecimalValue(value?: string | number | null) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : NaN;
+  }
+
+  if (typeof value === "string") {
+    const parsedValue = Number(value.trim().replace(",", "."));
+    return Number.isFinite(parsedValue) ? parsedValue : NaN;
+  }
+
+  return NaN;
+}
+
 function isMoneyGoalType(goalTypeName?: string | null) {
   return goalTypeName?.trim().toLowerCase() === "money";
+}
+
+function normalizeComparableText(value?: string | null) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function vendorMatchesGoal(vendor: VendorDto, goal: GoalDraft) {
+  const vendorSupply = normalizeComparableText(vendor.typeItemSupply);
+
+  if (!vendorSupply) {
+    return false;
+  }
+
+  const goalCandidates = [goal.goalType.name, goal.goalType.description, goal.title, goal.description];
+
+  return goalCandidates.some((candidate) => {
+    const normalizedCandidate = normalizeComparableText(candidate);
+
+    if (!normalizedCandidate) {
+      return false;
+    }
+
+    if (
+      vendorSupply === normalizedCandidate ||
+      vendorSupply.includes(normalizedCandidate) ||
+      normalizedCandidate.includes(vendorSupply)
+    ) {
+      return true;
+    }
+
+    return normalizedCandidate
+      .split(" ")
+      .filter((token) => token.length >= 4)
+      .some((token) => vendorSupply.includes(token));
+  });
+}
+
+function formatGoalEthLabel(goal: GoalDraft) {
+  const quantity = parseDecimalValue(goal.targetAmount);
+  const pricePerUnit = parseDecimalValue(goal.costPerUnit);
+  const totalAmount = Number.isFinite(quantity) && Number.isFinite(pricePerUnit) ? quantity * pricePerUnit : pricePerUnit;
+
+  if (!Number.isFinite(totalAmount)) {
+    return "0";
+  }
+
+  return formatEth(totalAmount).replace(" ETH", "");
 }
 
 function GoalTypeRow({
@@ -430,6 +530,156 @@ function SavedGoalCard({ goal }: { goal: GoalDraft }) {
   );
 }
 
+function VendorSelectionCard({
+  goal,
+  availableVendors,
+  selectedVendors,
+  isPickerOpen,
+  onTogglePicker,
+  onSelectVendor,
+  onRemoveVendor,
+}: {
+  goal: GoalDraft;
+  availableVendors: VendorDto[];
+  selectedVendors: VendorDto[];
+  isPickerOpen: boolean;
+  onTogglePicker: () => void;
+  onSelectVendor: (vendor: VendorDto) => void;
+  onRemoveVendor: (vendorId: string) => void;
+}) {
+  const tone = getGoalTypeTone(goal.goalType.name);
+  const hasVendor = selectedVendors.length > 0;
+  const statusColor = hasVendor ? "#3564C9" : "#D54841";
+  const ethLabel = formatGoalEthLabel(goal);
+  const statusLabel =
+    selectedVendors.length > 1
+      ? "FORNECEDORES VINCULADOS"
+      : hasVendor
+        ? "FORNECEDOR VINCULADO"
+        : "PENDENTE DE FORNECEDOR";
+  const dropdownPlaceholder =
+    availableVendors.length === 0
+      ? "Nenhum fornecedor disponivel para esta categoria."
+      : selectedVendors.length > 0
+        ? "Adicionar outro parceiro..."
+        : "Escolha um parceiro...";
+
+  return (
+    <View
+      className="overflow-hidden rounded-[24px] border border-[#EEF1EC] bg-white"
+      style={{
+        shadowColor: "#DCE4DC",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.06,
+        shadowRadius: 18,
+        elevation: 2,
+      }}
+    >
+      <View className="absolute right-[-22px] top-[-12px] h-[92px] w-[92px] rounded-full bg-[#F6F6F3]" />
+
+      <View className="gap-4 px-5 py-5">
+        <View className="flex-row items-start gap-4">
+          <View
+            className="mt-0.5 h-12 w-12 items-center justify-center rounded-[14px] border border-[#E8ECE7]"
+            style={{ backgroundColor: tone.backgroundColor }}
+          >
+            <View className="h-10 w-10 items-center justify-center rounded-[12px]" style={{ backgroundColor: "#FFFFFFB2" }}>
+              <MaterialCommunityIcons name={tone.iconName} size={20} color={tone.iconColor} />
+            </View>
+          </View>
+
+          <View className="flex-1 gap-[2px] pt-[1px]">
+            <Text className="text-[18px] font-semibold leading-7 text-[#202124]">{goal.title}</Text>
+            <Text className="text-[15px] leading-5 text-[#68716D]">{`\u039E ${ethLabel}`}</Text>
+            <View className="mt-[1px] flex-row items-center gap-[5px]">
+              <View className="h-[6px] w-[6px] rounded-full" style={{ backgroundColor: statusColor }} />
+              <Text className="text-[10px] font-bold uppercase tracking-[1.25px]" style={{ color: statusColor }}>
+                {statusLabel}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="gap-3 pt-[2px]">
+          <Text className="text-[10px] font-extrabold uppercase tracking-[1.35px] text-[#9AA29D]">
+            Selecionar fornecedor
+          </Text>
+
+          <Pressable
+            onPress={onTogglePicker}
+            disabled={availableVendors.length === 0}
+            className="min-h-[46px] flex-row items-center justify-between rounded-[14px] bg-[#F2F4F7] px-4"
+            style={({ pressed }) => [
+              availableVendors.length === 0 ? { opacity: 0.58 } : undefined,
+              pressed && availableVendors.length > 0 ? { opacity: 0.82 } : undefined,
+            ]}
+          >
+            <Text className="flex-1 text-[14px] text-[#98A0A9]">{dropdownPlaceholder}</Text>
+            <Ionicons
+              name={isPickerOpen ? "chevron-up" : "chevron-down"}
+              size={16}
+              color={availableVendors.length > 0 ? "#8D96A0" : "#BEC5CC"}
+            />
+          </Pressable>
+
+          {isPickerOpen ? (
+            <View className="overflow-hidden rounded-[18px] border border-[#E8ECE7] bg-white">
+              {availableVendors.map((vendor) => {
+                const isSelected = selectedVendors.some((selectedVendor) => selectedVendor.id === vendor.id);
+
+                return (
+                  <Pressable
+                    key={vendor.id}
+                    onPress={() => onSelectVendor(vendor)}
+                    className="border-b border-[#EEF1EC] px-4 py-4 last:border-b-0"
+                    style={({ pressed }) => [
+                      isSelected ? { backgroundColor: "#EEF4FF" } : undefined,
+                      pressed ? { backgroundColor: "#F8FAF8" } : undefined,
+                    ]}
+                  >
+                    <View className="flex-row items-center justify-between gap-3">
+                      <View className="flex-1">
+                        <Text className="text-[14px] font-medium text-[#202124]">{vendor.name}</Text>
+                        <Text className="mt-1 text-[11px] leading-5 text-[#6F7A75]">
+                          {formatVendorSupplyLabel(vendor.typeItemSupply)}
+                        </Text>
+                      </View>
+
+                      {isSelected ? <Ionicons name="checkmark-circle" size={18} color="#3564C9" /> : null}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
+
+          {selectedVendors.length > 0 ? (
+            <View className="gap-2">
+              {selectedVendors.map((vendor) => (
+                <View
+                  key={vendor.id}
+                  className="w-full flex-row items-center justify-between gap-3 rounded-[12px] bg-[#6F8FE0] px-4 py-[11px]"
+                >
+                  <Text className="flex-1 text-[13px] font-medium text-white" numberOfLines={1}>
+                    {vendor.name.toUpperCase()}
+                  </Text>
+                  <Pressable
+                    onPress={() => onRemoveVendor(vendor.id)}
+                    className="h-5 w-5 items-center justify-center rounded-full bg-[#FFFFFF26]"
+                    style={({ pressed }) => (pressed ? { opacity: 0.72 } : undefined)}
+                  >
+                    <Ionicons name="close" size={12} color="#FFFFFF" />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function CreateProjectPage({ navigation }: CreateProjectScreenProps) {
   const scrollViewRef = useRef<ScrollView | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -449,6 +699,12 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
   const [goalTypesError, setGoalTypesError] = useState("");
   const [isLoadingGoalTypes, setIsLoadingGoalTypes] = useState(false);
   const [hasLoadedGoalTypes, setHasLoadedGoalTypes] = useState(false);
+  const [vendors, setVendors] = useState<VendorDto[]>([]);
+  const [vendorsError, setVendorsError] = useState("");
+  const [isLoadingVendors, setIsLoadingVendors] = useState(false);
+  const [hasLoadedVendors, setHasLoadedVendors] = useState(false);
+  const [selectedVendorIdsByGoalId, setSelectedVendorIdsByGoalId] = useState<Record<string, string[]>>({});
+  const [openVendorGoalId, setOpenVendorGoalId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState("");
 
   const isGeneralComplete = useMemo(() => {
@@ -460,6 +716,12 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
   }, [goalName, goalSummaryDescription]);
 
   const shouldShowItemsSection = isGoalDraftUnlocked && isGoalBasicsReady;
+  const hasCreatedGoals = createdGoals.length > 0;
+  const supplyGoals = useMemo(
+    () => createdGoals.filter((goal) => !isMoneyGoalType(goal.goalType.name)),
+    [createdGoals],
+  );
+  const moneyGoalsCount = createdGoals.length - supplyGoals.length;
 
   const isConfirmGoalDisabled = useMemo(() => {
     if (!selectedGoalType) {
@@ -523,6 +785,48 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
     };
   }, [activeStep, hasLoadedGoalTypes]);
 
+  useEffect(() => {
+    if (activeStep !== "vendors" || hasLoadedVendors) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadVendors = async () => {
+      try {
+        setIsLoadingVendors(true);
+        setVendorsError("");
+
+        const result = await apiClient.getVendors({ pageSize: 100, pageNumber: 0 });
+        const nextVendors = normalizeVendorsResponse(result as VendorResponseShape);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setVendors(nextVendors);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setVendors([]);
+        setVendorsError(error instanceof Error ? error.message : "Nao foi possivel carregar os fornecedores.");
+      } finally {
+        if (isMounted) {
+          setIsLoadingVendors(false);
+          setHasLoadedVendors(true);
+        }
+      }
+    };
+
+    void loadVendors();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeStep, hasLoadedVendors]);
+
   const showToast = (message: string) => {
     setToastMessage(message);
 
@@ -559,7 +863,19 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
       return;
     }
 
+    if (step === "vendors" && !hasCreatedGoals) {
+      return;
+    }
+
     setActiveStep(step);
+  };
+
+  const handleContinueToVendors = () => {
+    if (!hasCreatedGoals) {
+      return;
+    }
+
+    setActiveStep("vendors");
   };
 
   const handleUnlockGoalDraft = () => {
@@ -619,11 +935,53 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
     }, 10);
   };
 
-  const pageTitle = activeStep === "general" ? "Criar novo projeto" : "Definir metas detalhadas";
+  const handleToggleVendorPicker = (goalId: string) => {
+    setOpenVendorGoalId((currentGoalId) => (currentGoalId === goalId ? null : goalId));
+  };
+
+  const handleSelectVendorForGoal = (goalId: string, vendor: VendorDto) => {
+    setSelectedVendorIdsByGoalId((currentSelections) => ({
+      ...currentSelections,
+      [goalId]: currentSelections[goalId]?.includes(vendor.id)
+        ? currentSelections[goalId].filter((vendorId) => vendorId !== vendor.id)
+        : [...(currentSelections[goalId] ?? []), vendor.id],
+    }));
+    setOpenVendorGoalId(null);
+  };
+
+  const handleRemoveVendorFromGoal = (goalId: string, vendorId: string) => {
+    setSelectedVendorIdsByGoalId((currentSelections) => {
+      const currentVendorIds = currentSelections[goalId] ?? [];
+
+      if (!currentVendorIds.includes(vendorId)) {
+        return currentSelections;
+      }
+
+      const nextVendorIds = currentVendorIds.filter((currentVendorId) => currentVendorId !== vendorId);
+      const nextSelections = { ...currentSelections };
+
+      if (nextVendorIds.length === 0) {
+        delete nextSelections[goalId];
+        return nextSelections;
+      }
+
+      nextSelections[goalId] = nextVendorIds;
+      return nextSelections;
+    });
+  };
+
+  const pageTitle =
+    activeStep === "general"
+      ? "Criar novo projeto"
+      : activeStep === "goals"
+        ? "Definir metas detalhadas"
+        : "Selecionar fornecedores";
   const pageDescription =
     activeStep === "general"
       ? "Inicie um novo registro no Living Ledger. Defina os parametros fundamentais para iniciar a captacao de impacto."
-      : "Estabeleca as quantidades especificas e valores para o seu novo projeto de impacto. Essas metas serao visiveis para os doadores.";
+      : activeStep === "goals"
+        ? "Estabeleca as quantidades especificas e valores para o seu novo projeto de impacto. Essas metas serao visiveis para os doadores."
+        : "Vincule cada meta de suprimentos a um fornecedor homologado. Metas financeiras ficam fora desta etapa porque o repasse vai direto para a ONG.";
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="projetos">
@@ -640,7 +998,12 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
           description={pageDescription}
         />
 
-        <StepTabs activeStep={activeStep} isGeneralComplete={isGeneralComplete} onPressStep={handleStepPress} />
+        <StepTabs
+          activeStep={activeStep}
+          isGeneralComplete={isGeneralComplete}
+          isVendorsEnabled={hasCreatedGoals}
+          onPressStep={handleStepPress}
+        />
 
         {toastMessage ? (
           <View className="rounded-[18px] border border-[#CFE7D1] bg-[#F3FBF4] px-4 py-4">
@@ -824,6 +1187,99 @@ export default function CreateProjectPage({ navigation }: CreateProjectScreenPro
                 confirmDisabled={isConfirmGoalDisabled}
               />
             ) : null}
+
+            {hasCreatedGoals ? (
+              <Button
+                label="Continuar para fornecedores"
+                onPress={handleContinueToVendors}
+                className="rounded-[22px]"
+                textClassName="text-[16px]"
+                rightIcon={<Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        {activeStep === "vendors" ? (
+          <>
+            {isLoadingVendors ? <StateCard kind="loading" message="Carregando fornecedores homologados..." /> : null}
+
+            {!isLoadingVendors && vendorsError ? (
+              <StateCard kind="error" title="Falha ao carregar fornecedores" message={vendorsError} />
+            ) : null}
+
+            {moneyGoalsCount > 0 ? (
+              <View className="rounded-[20px] border border-[#E8DFFF] bg-[#F8F5FF] px-4 py-4">
+                <View className="flex-row items-start gap-3">
+                  <View className="mt-0.5 h-8 w-8 items-center justify-center rounded-full bg-[#EEE7FF]">
+                    <MaterialCommunityIcons name="bank-transfer-out" size={18} color="#6D4BCB" />
+                  </View>
+                  <View className="flex-1 gap-1">
+                    <Text className="text-[12px] font-bold uppercase tracking-[1.1px] text-[#6D4BCB]">
+                      Metas financeiras fora desta etapa
+                    </Text>
+                    <Text className="text-[13px] leading-5 text-[#5F5B72]">
+                      {moneyGoalsCount} meta{moneyGoalsCount > 1 ? "s" : ""} financeira
+                      {moneyGoalsCount > 1 ? "s foram" : " foi"} mantida
+                      {moneyGoalsCount > 1 ? "s" : ""} fora da selecao de fornecedores.
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
+            {supplyGoals.length > 0 ? (
+              <View className="gap-4">
+                <Text className="text-[12px] font-bold uppercase tracking-[1.8px] text-[#2F7D32]">Itens</Text>
+
+                {supplyGoals.map((goal) => {
+                  const availableVendors = vendors.filter((vendor) => vendorMatchesGoal(vendor, goal));
+                  const selectedVendorIds = selectedVendorIdsByGoalId[goal.id] ?? [];
+                  const selectedVendors = selectedVendorIds
+                    .map((vendorId) => vendors.find((vendor) => vendor.id === vendorId) ?? null)
+                    .filter((vendor): vendor is VendorDto => vendor !== null);
+
+                  return (
+                    <VendorSelectionCard
+                      key={goal.id}
+                      goal={goal}
+                      availableVendors={availableVendors}
+                      selectedVendors={selectedVendors}
+                      isPickerOpen={openVendorGoalId === goal.id}
+                      onTogglePicker={() => handleToggleVendorPicker(goal.id)}
+                      onSelectVendor={(vendor) => handleSelectVendorForGoal(goal.id, vendor)}
+                      onRemoveVendor={(vendorId) => handleRemoveVendorFromGoal(goal.id, vendorId)}
+                    />
+                  );
+                })}
+              </View>
+            ) : (
+              <DecorativeCard>
+                <View className="gap-4">
+                  <View className="h-11 w-11 items-center justify-center rounded-[14px] bg-[#F7F3FF]">
+                    <MaterialCommunityIcons name="bank-transfer-out" size={22} color="#6D4BCB" />
+                  </View>
+                  <View className="gap-2">
+                    <Text className="text-[20px] font-semibold leading-7 text-[#202124]">
+                      Nenhuma meta de suprimento para vincular
+                    </Text>
+                    <Text className="text-[14px] leading-6 text-[#66736D]">
+                      Este projeto tem apenas metas financeiras no momento. Como esse valor vai direto para a ONG, nao
+                      ha fornecedor para selecionar nesta etapa.
+                    </Text>
+                  </View>
+                </View>
+              </DecorativeCard>
+            )}
+
+            <Button
+              label="Voltar para metas"
+              onPress={() => setActiveStep("goals")}
+              variant="light"
+              className="rounded-[22px]"
+              textClassName="text-[16px]"
+              leftIcon={<Ionicons name="arrow-back" size={18} color="#22272B" />}
+            />
           </>
         ) : null}
       </ScrollView>
