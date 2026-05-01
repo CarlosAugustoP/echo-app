@@ -120,9 +120,24 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
       return;
     }
 
-    if (tab === "inicio" || (isNgoUser && tab === "projetos")) {
+    if (tab === "inicio") {
       if (route.name !== "AppHome") {
         navigation.navigate("AppHome");
+      }
+
+      return;
+    }
+
+    if (isNgoUser && tab === "projetos") {
+      if (!currentUser?.id) {
+        return;
+      }
+
+      const currentProjectsRouteParams =
+        route.name === "ProjectsList" ? (route.params as RootStackParamList["ProjectsList"] | undefined) : undefined;
+
+      if (route.name !== "ProjectsList" || currentProjectsRouteParams?.managerId !== currentUser.id) {
+        navigation.navigate("ProjectsList", { managerId: currentUser.id });
       }
 
       return;

@@ -222,6 +222,14 @@ export class ApiService {
     });
   }
 
+  async getPendingDonationsByProject(projectId: Uuid, query?: QueryParams) {
+    return this.request<PaginatedList<DonationDto>>({
+      path: `/api/donations/pending-by-project/${projectId}`,
+      query,
+      auth: true,
+    });
+  }
+
   async donate(body: DonationRequestDto) {
     return this.request<boolean, DonationRequestDto>({
       method: "POST",
@@ -247,7 +255,7 @@ export class ApiService {
   }
 
   async transferToVendor(donationId: Uuid, vendorId: Uuid) {
-    return this.request<boolean>({
+    return this.request<boolean>({  
       method: "POST",
       path: `/api/donations/transfer-to-vendor/${donationId}/${vendorId}`,
       auth: true,
@@ -292,6 +300,13 @@ export class ApiService {
 
   async getVendor(vendorId: Uuid) {
     return this.request<VendorDto>({ path: `/api/vendors/${vendorId}` });
+  }
+
+  async getVendorsByGoal(goalId: Uuid) {
+    return this.request<VendorDto[]>({
+      path: `/api/vendors/by-goal/${goalId}`,
+      auth: true,
+    });
   }
 
   async getVendors(query?: QueryParams) {

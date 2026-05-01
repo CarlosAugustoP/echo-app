@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Image, ImageBackground, Pressable, ScrollView, Text, View } from "react-native";
+import { Animated, Easing, ImageBackground, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { SkeletonBlock } from "../common/Skeleton";
 import { AppLayout } from "../layout/AppLayout";
+import { ProjectCard, ProjectCardSkeleton } from "../project/ProjectCard";
 import { apiClient } from "../../services/apiClient";
 import { clearAccessToken } from "../../services/authStorage";
 import { clearCurrentUser } from "../../stores/userStore";
 import type { AppHomeScreenProps } from "../../navigation/types";
 import type { ProjectDto, UserDto } from "../../types/api";
-import { Button } from "../common/Button";
 
 const fallbackProjectImage = require("../../assets/adaptive-icon.png");
 
@@ -23,9 +23,9 @@ type NgoHomeContentProps = {
 type NgoProjectListItem = {
   id: string;
   title: string;
-  category: string;
   progress: number;
   imageUrl: string | null;
+  hasPendingDonations: boolean;
 };
 
 function parseSafeNumber(value: number | string | undefined | null) {
@@ -52,23 +52,13 @@ function truncateText(value: string, maxLength: number) {
   return `${value.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
-function getProjectCategory(project: ProjectDto) {
-  const primaryGoalType = project.goals[0]?.goalType?.name?.trim();
-
-  if (!primaryGoalType) {
-    return "PROJETO";
-  }
-
-  return primaryGoalType.toUpperCase();
-}
-
 function buildProjectListItem(project: ProjectDto): NgoProjectListItem {
   return {
     id: project.id,
-    title: project.title,
-    category: getProjectCategory(project),
+    title: truncateText(project.title, 36),
     progress: normalizeProgress(project.progress),
     imageUrl: normalizeImageUrl(project.mainImage),
+    hasPendingDonations: project.hasPendingDonations,
   };
 }
 
@@ -95,96 +85,6 @@ function HomeSection({
       </View>
 
       <View className="mt-4 gap-4">{children}</View>
-    </View>
-  );
-}
-
-function NgoListItem({
-  title,
-  category,
-  progress,
-  imageUrl,
-  onPress,
-}: {
-  title: string;
-  category: string;
-  progress: number;
-  imageUrl: string | null;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="rounded-[26px] border border-[#EEF1EC] bg-white px-4 py-4"
-      style={({ pressed }) => [
-        {
-          shadowColor: "#DDE5DD",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 16,
-          elevation: 2,
-        },
-        pressed ? { opacity: 0.82 } : undefined,
-      ]}
-    >
-      <View className="flex-row items-start gap-4">
-        <View className="h-[106px] w-[106px] overflow-hidden rounded-[18px] bg-[#E8EEF0]">
-          {imageUrl ? (
-            <Image source={{ uri: imageUrl }} className="h-full w-full" resizeMode="cover" />
-          ) : (
-            <View className="h-full w-full items-center justify-center bg-[#EEF2EE]">
-              <Image source={fallbackProjectImage} className="h-[42px] w-[42px]" resizeMode="contain" style={{ opacity: 0.2 }} />
-            </View>
-          )}
-        </View>
-
-        <View className="flex-1 pt-1">
-          <Text className="text-[18px] font-semibold leading-6 text-[#202124]">{truncateText(title, 18)}</Text>
-          {/* <Text className="mt-1 text-[11px] font-bold uppercase tracking-[1.1px] text-[#2E7FC7]">{category}</Text> */}
-
-          <View className="mt-7 gap-1.5">
-            <View className="flex-row items-center justify-between gap-3">
-              <Text className="text-[12px] font-medium text-[#4D5551]">Progresso</Text>
-              <Text className="text-[12px] font-medium text-[#4D5551]">{`${progress}%`}</Text>
-            </View>
-            <View className="h-[7px] overflow-hidden rounded-full bg-[#E5E7E4]">
-              <View className="h-full rounded-full bg-[#355FCE]" style={{ width: `${progress}%` }} />
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function NgoListSkeleton() {
-  return (
-    <View
-      className="rounded-[26px] border border-[#EEF1EC] bg-white px-4 py-4"
-      style={{
-        shadowColor: "#DDE5DD",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
-        elevation: 2,
-      }}
-    >
-      <View className="flex-row items-start gap-4">
-        <SkeletonBlock width={106} height={106} borderRadius={18} />
-        <View className="flex-1 pt-1">
-          <SkeletonBlock width="78%" height={22} borderRadius={999} />
-          <View className="mt-2">
-            <SkeletonBlock width="26%" height={11} borderRadius={999} />
-          </View>
-          <View className="mt-8 gap-1.5">
-            <View className="flex-row items-center justify-between gap-3">
-              <SkeletonBlock width={68} height={12} borderRadius={999} />
-              <SkeletonBlock width={28} height={12} borderRadius={999} />
-            </View>
-            <SkeletonBlock width="100%" height={7} borderRadius={999} />
-          </View>
-        </View>
-      </View>
     </View>
   );
 }
@@ -322,11 +222,6 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
     navigation.navigate("CreateProject");
   };
 
-  const freeFundsToSupplierTestButton = async () =>
-  {
-    await apiClient.transferToVendor("4ac949c7-82f2-448e-aab3-4e651dec67c4", "2b6ea948-ecdf-4c82-9bee-0927870c7486")
-  }
-
   const handleOpenProjectsList = () => {
     navigation.navigate("ProjectsList", { managerId: currentUser.id });
   };
@@ -423,16 +318,23 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
 
         <HomeSection title="Seus Projetos" actionLabel="VER MAIS" onActionPress={handleOpenProjectsList}>
           {isLoading
-            ? Array.from({ length: 3 }).map((_, index) => <NgoListSkeleton key={`ngo-project-skeleton-${index}`} />)
+            ? Array.from({ length: 3 }).map((_, index) => <ProjectCardSkeleton key={`ngo-project-skeleton-${index}`} />)
             : ngoProjects.length > 0
               ? ngoProjects.map((project) => (
-                  <NgoListItem
+                  <ProjectCard
                     key={project.id}
                     title={project.title}
-                    category={project.category}
                     progress={project.progress}
                     imageUrl={project.imageUrl}
-                    onPress={() => handleOpenProject(project.id)}
+                    hasPendingDonations={project.hasPendingDonations}
+                    onViewProject={() => handleOpenProject(project.id)}
+                    onAllocateDonations={() =>
+                      navigation.navigate("PendingProjectDonations", {
+                        projectId: project.id,
+                        projectTitle: project.title,
+                      })
+                    }
+                    variant="small"
                   />
                 ))
               : <EmptySectionState message="Assim que voce criar seus projetos, eles aparecerao aqui." />}
@@ -449,10 +351,6 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
 
         <Pressable className="self-center pt-2" onPress={handleSignOut}>
           <Text className="text-[13px] font-bold text-[#5C635F]">Sair</Text>
-        </Pressable>
-
-        <Pressable onPress={freeFundsToSupplierTestButton}>
-          PLEASE GOD WORK
         </Pressable>
       </ScrollView>
     </AppLayout>

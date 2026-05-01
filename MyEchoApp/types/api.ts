@@ -133,6 +133,7 @@ export type ProjectDto = {
   progress: DecimalStringOrNumber;
   createdByName: string;
   createdById : Uuid;
+  hasPendingDonations: boolean;
 };
 
 export type ProjectHeaderDto = {

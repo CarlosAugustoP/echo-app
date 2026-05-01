@@ -1,22 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from "react-native";
 
-import { SkeletonBlock } from "../components/common/Skeleton";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { PageHeader } from "../components/common/PageHeader";
 import { AppLayout } from "../components/layout/AppLayout";
+import { ProjectCard, ProjectCardSkeleton } from "../components/project/ProjectCard";
 import type { ProjectsListScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import type { ProjectDto } from "../types/api";
+import type { PaginatedList, ProjectDto, QueryParams } from "../types/api";
 
-const fallbackProjectImage = require("../assets/adaptive-icon.png");
+const PAGE_SIZE = 10;
+const INITIAL_PAGE_NUMBER = 0;
 
 type NgoProjectListItem = {
   id: string;
   title: string;
-  category: string;
   progress: number;
   imageUrl: string | null;
+  hasPendingDonations: boolean;
 };
+
+function buildQuery(pageNumber: number): QueryParams {
+  return {
+    pageNumber,
+    pageSize: PAGE_SIZE,
+  };
+}
 
 function parseSafeNumber(value: number | string | undefined | null) {
   const parsedValue = Number(value);
@@ -42,108 +51,14 @@ function truncateText(value: string, maxLength: number) {
   return `${value.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
-function getProjectCategory(project: ProjectDto) {
-  const primaryGoalType = project.goals[0]?.goalType?.name?.trim();
-
-  if (!primaryGoalType) {
-    return "PROJETO";
-  }
-
-  return primaryGoalType.toUpperCase();
-}
-
 function buildProjectListItem(project: ProjectDto): NgoProjectListItem {
   return {
     id: project.id,
-    title: project.title,
-    category: getProjectCategory(project),
+    title: truncateText(project.title, 36),
     progress: normalizeProgress(project.progress),
     imageUrl: normalizeImageUrl(project.mainImage),
+    hasPendingDonations: project.hasPendingDonations,
   };
-}
-
-function NgoListItem({
-  title,
-  progress,
-  imageUrl,
-  onPress,
-}: {
-  title: string;
-  progress: number;
-  imageUrl: string | null;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="rounded-[26px] border border-[#EEF1EC] bg-white px-4 py-4"
-      style={({ pressed }) => [
-        {
-          shadowColor: "#DDE5DD",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 16,
-          elevation: 2,
-        },
-        pressed ? { opacity: 0.82 } : undefined,
-      ]}
-    >
-      <View className="flex-row items-start gap-4">
-        <View className="h-[106px] w-[106px] overflow-hidden rounded-[18px] bg-[#E8EEF0]">
-          {imageUrl ? (
-            <Image source={{ uri: imageUrl }} className="h-full w-full" resizeMode="cover" />
-          ) : (
-            <View className="h-full w-full items-center justify-center bg-[#EEF2EE]">
-              <Image source={fallbackProjectImage} className="h-[42px] w-[42px]" resizeMode="contain" style={{ opacity: 0.2 }} />
-            </View>
-          )}
-        </View>
-
-        <View className="flex-1 pt-1">
-          <Text className="text-[18px] font-semibold leading-6 text-[#202124]">{truncateText(title, 28)}</Text>
-
-          <View className="mt-7 gap-1.5">
-            <View className="flex-row items-center justify-between gap-3">
-              <Text className="text-[12px] font-medium text-[#4D5551]">Progresso</Text>
-              <Text className="text-[12px] font-medium text-[#4D5551]">{`${progress}%`}</Text>
-            </View>
-            <View className="h-[7px] overflow-hidden rounded-full bg-[#E5E7E4]">
-              <View className="h-full rounded-full bg-[#355FCE]" style={{ width: `${progress}%` }} />
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function NgoListSkeleton() {
-  return (
-    <View
-      className="rounded-[26px] border border-[#EEF1EC] bg-white px-4 py-4"
-      style={{
-        shadowColor: "#DDE5DD",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
-        elevation: 2,
-      }}
-    >
-      <View className="flex-row items-start gap-4">
-        <SkeletonBlock width={106} height={106} borderRadius={18} />
-        <View className="flex-1 pt-1">
-          <SkeletonBlock width="78%" height={22} borderRadius={999} />
-          <View className="mt-8 gap-1.5">
-            <View className="flex-row items-center justify-between gap-3">
-              <SkeletonBlock width={68} height={12} borderRadius={999} />
-              <SkeletonBlock width={28} height={12} borderRadius={999} />
-            </View>
-            <SkeletonBlock width="100%" height={7} borderRadius={999} />
-          </View>
-        </View>
-      </View>
-    </View>
-  );
 }
 
 function EmptySectionState({ message }: { message: string }) {
@@ -155,7 +70,9 @@ function EmptySectionState({ message }: { message: string }) {
 }
 
 export default function ProjectsListPage({ navigation, route }: ProjectsListScreenProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [pageState, setPageState] = useState<PaginatedList<ProjectDto> | null>(null);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -164,29 +81,28 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
 
     const loadProjects = async () => {
       try {
-        setIsLoading(true);
+        setIsLoadingInitial(true);
         setErrorMessage("");
 
-        const projectsResult = await apiClient.getProjectsByManager(route.params.managerId, {
-          pageSize: 100,
-          pageNumber: 0,
-        });
+        const projectsResult = await apiClient.getProjectsByManager(route.params.managerId, buildQuery(INITIAL_PAGE_NUMBER));
 
         if (!isMounted) {
           return;
         }
 
         setProjects(projectsResult.items);
+        setPageState(projectsResult);
       } catch (error) {
         if (!isMounted) {
           return;
         }
 
         setProjects([]);
+        setPageState(null);
         setErrorMessage(error instanceof Error ? error.message : "Nao foi possivel carregar os projetos.");
       } finally {
         if (isMounted) {
-          setIsLoading(false);
+          setIsLoadingInitial(false);
         }
       }
     };
@@ -199,10 +115,46 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
   }, [route.params.managerId]);
 
   const projectCards = useMemo(() => projects.map(buildProjectListItem), [projects]);
+  const hasMorePages = pageState ? pageState.currentPage < pageState.totalPages : false;
+
+  const handleLoadMore = async () => {
+    if (!pageState || isLoadingInitial || isLoadingMore || !hasMorePages) {
+      return;
+    }
+
+    try {
+      setIsLoadingMore(true);
+
+      const nextPage = pageState.currentPage + 1;
+      const result = await apiClient.getProjectsByManager(route.params.managerId, buildQuery(nextPage));
+
+      setProjects((currentValue) => [...currentValue, ...result.items]);
+      setPageState(result);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Nao foi possivel carregar mais projetos.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleScroll = ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
+    const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+
+    if (distanceFromBottom <= 180) {
+      void handleLoadMore();
+    }
+  };
 
   return (
-    <AppLayout headerVariant="logged-in" authFooterTab="inicio">
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 pb-10" showsVerticalScrollIndicator={false}>
+    <AppLayout headerVariant="logged-in" authFooterTab="projetos">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 pb-10"
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
         <PageHeader
           eyebrow="PROJETOS"
           title="Seus projetos"
@@ -219,20 +171,38 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
         ) : null}
 
         <View className="gap-4">
-          {isLoading
-            ? Array.from({ length: 4 }).map((_, index) => <NgoListSkeleton key={`projects-list-skeleton-${index}`} />)
+          {isLoadingInitial
+            ? Array.from({ length: 4 }).map((_, index) => <ProjectCardSkeleton key={`projects-list-skeleton-${index}`} />)
             : projectCards.length > 0
               ? projectCards.map((project) => (
-                  <NgoListItem
+                  <ProjectCard
                     key={project.id}
                     title={project.title}
                     progress={project.progress}
                     imageUrl={project.imageUrl}
-                    onPress={() => navigation.navigate("ProjectDetails", { projectId: project.id })}
+                    hasPendingDonations={project.hasPendingDonations}
+                    onViewProject={() => navigation.navigate("ProjectDetails", { projectId: project.id })}
+                    onAllocateDonations={() =>
+                      navigation.navigate("PendingProjectDonations", {
+                        projectId: project.id,
+                        projectTitle: project.title,
+                      })
+                    }
                   />
                 ))
               : <EmptySectionState message="Assim que voce criar seus projetos, eles aparecerao aqui." />}
         </View>
+
+        {isLoadingMore && !isLoadingInitial && !errorMessage ? (
+          <View className="items-center justify-center py-3">
+            <LoadingSpinner
+              className="items-center justify-center"
+              label="Carregando mais projetos..."
+              labelClassName="mt-3 text-[12px] text-[#7A8480]"
+              size="small"
+            />
+          </View>
+        ) : null}
       </ScrollView>
     </AppLayout>
   );
