@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Animated, Easing, Image, ImageBackground, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Animated, Easing, Image, ImageBackground, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -69,18 +69,6 @@ function buildProjectListItem(project: ProjectDto): NgoProjectListItem {
     progress: normalizeProgress(project.progress),
     imageUrl: normalizeImageUrl(project.mainImage),
   };
-}
-
-function showComingSoonMessage() {
-  const title = "Funcionalidade em breve";
-  const message = "Ainda estamos finalizando este fluxo no app.";
-
-  if (Platform.OS === "web") {
-    window.alert(`${title}\n\n${message}`);
-    return;
-  }
-
-  Alert.alert(title, message);
 }
 
 function HomeSection({
@@ -333,6 +321,10 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
     navigation.navigate("CreateProject");
   };
 
+  const handleOpenProjectsList = () => {
+    navigation.navigate("ProjectsList", { managerId: currentUser.id });
+  };
+
   const handleSignOut = async () => {
     await clearAccessToken();
     clearCurrentUser();
@@ -423,7 +415,7 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
           </View>
         ) : null}
 
-        <HomeSection title="Seus Projetos" actionLabel="VER MAIS" onActionPress={showComingSoonMessage}>
+        <HomeSection title="Seus Projetos" actionLabel="VER MAIS" onActionPress={handleOpenProjectsList}>
           {isLoading
             ? Array.from({ length: 3 }).map((_, index) => <NgoListSkeleton key={`ngo-project-skeleton-${index}`} />)
             : ngoProjects.length > 0

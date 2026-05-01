@@ -9,6 +9,7 @@ export type RootStackParamList = {
   SignupCompleted: undefined;
   Signin: undefined;
   AppHome: undefined;
+  ProjectsList: { managerId: Uuid };
   CreateProject: undefined;
   Dashboard: undefined;
   Profile: undefined;
@@ -34,6 +35,7 @@ export type RoleDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 
 export type SignupCompletedScreenProps = NativeStackScreenProps<RootStackParamList, "SignupCompleted">;
 export type SigninScreenProps = NativeStackScreenProps<RootStackParamList, "Signin">;
 export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "AppHome">;
+export type ProjectsListScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectsList">;
 export type CreateProjectScreenProps = NativeStackScreenProps<RootStackParamList, "CreateProject">;
 export type DashboardScreenProps = NativeStackScreenProps<RootStackParamList, "Dashboard">;
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, "Profile">;

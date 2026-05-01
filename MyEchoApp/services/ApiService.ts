@@ -3,6 +3,8 @@ import type {
   ApiResult,
   ContributionSummaryDto,
   ContributionTotalDto,
+  CreateProjectGoalRequestDto,
+  CreateProjectRequestDto,
   DonationRequestDto,
   DonationDistributionDto,
   DonationDto,
@@ -125,8 +127,8 @@ export class ApiService {
     return this.request<ProjectDto>({ path: `/api/projects/${id}` });
   }
 
-  async createProject<TBody extends JsonObject>(body: TBody) {
-    return this.request<ProjectDto, TBody>({
+  async createProject(body: CreateProjectRequestDto) {
+    return this.request<ProjectDto, CreateProjectRequestDto>({
       method: "POST",
       path: "/api/projects",
       body,
@@ -143,8 +145,8 @@ export class ApiService {
     });
   }
 
-  async addGoal<TBody extends JsonObject>(projectId: Uuid, body: TBody) {
-    return this.request<GoalDto, TBody>({
+  async addGoal(projectId: Uuid, body: CreateProjectGoalRequestDto) {
+    return this.request<GoalDto, CreateProjectGoalRequestDto>({
       method: "POST",
       path: `/api/projects/${projectId}/goals`,
       body,

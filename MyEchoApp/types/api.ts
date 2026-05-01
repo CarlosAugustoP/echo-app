@@ -105,6 +105,22 @@ export type GoalDto = {
   costPerUnit: number | null;
 };
 
+export type CreateProjectGoalRequestDto = {
+  title: string;
+  description: string | null;
+  targetAmount: number;
+  currentAmount: number;
+  costPerUnit: number | null;
+  vendorIds: Uuid[] | null;
+  goalTypeId: Uuid;
+};
+
+export type CreateProjectRequestDto = {
+  title: string;
+  description: string;
+  goals: CreateProjectGoalRequestDto[];
+};
+
 export type ProjectDto = {
   id: Uuid;
   title: string;

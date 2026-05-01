@@ -25,6 +25,8 @@ import { useUserStore } from "../stores/userStore";
 import type { GoalDto, ProjectBlogPostHeaderDto, ProjectDto, UserDto } from "../types/api";
 import { isNgoUserRole } from "../utils/userRoles";
 
+const projectDescriptionPreviewLines = 5;
+
 export default function ProjectDetailsPage({ navigation, route }: ProjectDetailsScreenProps) {
   const { currentUser } = useUserStore();
   const [project, setProject] = useState<ProjectDto | null>(null);
@@ -196,19 +198,28 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
 
         <View className="overflow-hidden rounded-[18px] border border-[#EEF1EB] bg-white px-4 py-6">
           <Text className="text-[20px] font-semibold leading-6 text-[#202124]">Sobre o projeto</Text>
-          <Text
-            className="mt-[10px] text-[18px] leading-[18px] text-[#525B57]"
-            numberOfLines={isDescriptionExpanded ? undefined : 5}
-            onTextLayout={({ nativeEvent }) => {
-              if (isDescriptionExpanded) {
-                return;
-              }
 
-              setIsDescriptionTruncated(nativeEvent.lines.length > 5);
-            }}
-          >
-            {projectDescription}
-          </Text>
+          <View className="relative mt-[10px]">
+            {!isDescriptionExpanded ? (
+              <Text
+                className="absolute text-[18px] leading-7 text-[#525B57] opacity-0"
+                style={{ left: 0, right: 0 }}
+                onTextLayout={({ nativeEvent }) => {
+                  setIsDescriptionTruncated(nativeEvent.lines.length > projectDescriptionPreviewLines);
+                }}
+              >
+                {projectDescription}
+              </Text>
+            ) : null}
+
+            <Text
+              className="text-[18px] leading-7 text-[#525B57]"
+              numberOfLines={isDescriptionExpanded ? undefined : projectDescriptionPreviewLines}
+              ellipsizeMode="tail"
+            >
+              {projectDescription}
+            </Text>
+          </View>
 
           {isDescriptionTruncated ? (
             <Pressable
@@ -217,7 +228,7 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
               style={({ pressed }) => (pressed ? { opacity: 0.72 } : undefined)}
             >
               <Text className="text-[12px] font-semibold leading-[18px] text-[#202124]">
-                {isDescriptionExpanded ? "ver menos" : "ver mais"}
+                {isDescriptionExpanded ? "ler menos" : "ler mais"}
               </Text>
             </Pressable>
           ) : null}

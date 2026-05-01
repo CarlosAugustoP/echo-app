@@ -14,6 +14,7 @@ import DonationTimelinePage from './pages/DonationTimeline';
 import ProfilePage from './pages/Profile';
 import ProjectBlogPostPage from './pages/ProjectBlogPost';
 import ProjectDetailsPage from './pages/ProjectDetails';
+import ProjectsListPage from './pages/ProjectsList';
 import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
 import SignupCompletedPage from './pages/SignupCompleted';
@@ -38,6 +39,7 @@ export default function App() {
           <Stack.Screen name="SignupCompleted" component={SignupCompletedPage} />
           <Stack.Screen name="Signin" component={SigninPage} />
           <Stack.Screen name="AppHome" component={AppHomePage} />
+          <Stack.Screen name="ProjectsList" component={ProjectsListPage} />
           <Stack.Screen name="CreateProject" component={CreateProjectPage} />
           <Stack.Screen name="Dashboard" component={DashboardPage} />
           <Stack.Screen name="Profile" component={ProfilePage} />
