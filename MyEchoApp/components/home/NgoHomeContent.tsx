@@ -10,6 +10,7 @@ import { clearAccessToken } from "../../services/authStorage";
 import { clearCurrentUser } from "../../stores/userStore";
 import type { AppHomeScreenProps } from "../../navigation/types";
 import type { ProjectDto, UserDto } from "../../types/api";
+import { Button } from "../common/Button";
 
 const fallbackProjectImage = require("../../assets/adaptive-icon.png");
 
@@ -321,6 +322,11 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
     navigation.navigate("CreateProject");
   };
 
+  const freeFundsToSupplierTestButton = async () =>
+  {
+    await apiClient.transferToVendor("4ac949c7-82f2-448e-aab3-4e651dec67c4", "2b6ea948-ecdf-4c82-9bee-0927870c7486")
+  }
+
   const handleOpenProjectsList = () => {
     navigation.navigate("ProjectsList", { managerId: currentUser.id });
   };
@@ -443,6 +449,10 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
 
         <Pressable className="self-center pt-2" onPress={handleSignOut}>
           <Text className="text-[13px] font-bold text-[#5C635F]">Sair</Text>
+        </Pressable>
+
+        <Pressable onPress={freeFundsToSupplierTestButton}>
+          PLEASE GOD WORK
         </Pressable>
       </ScrollView>
     </AppLayout>
