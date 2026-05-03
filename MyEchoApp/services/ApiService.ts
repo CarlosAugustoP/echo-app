@@ -3,8 +3,11 @@ import type {
   ApiResult,
   ContributionSummaryDto,
   ContributionTotalDto,
+  CreateBlogPostRequestDto,
   CreateProjectGoalRequestDto,
   CreateProjectRequestDto,
+  DocumentRemoveRequestDto,
+  DocumentRequestDto,
   DonationRequestDto,
   DonationDistributionDto,
   DonationDto,
@@ -19,6 +22,7 @@ import type {
   ProjectDto,
   ProjectHeaderDto,
   QueryParams,
+  UpdateProjectRequestDto,
   UpdateWalletAddressRequestDto,
   UpdateUserRequestDto,
   UserDto,
@@ -136,8 +140,8 @@ export class ApiService {
     });
   }
 
-  async updateProject<TBody extends JsonObject>(id: Uuid, body: TBody) {
-    return this.request<ProjectDto, TBody>({
+  async updateProject(id: Uuid, body: UpdateProjectRequestDto) {
+    return this.request<ProjectDto, UpdateProjectRequestDto>({
       method: "PUT",
       path: `/api/projects/${id}`,
       body,
@@ -177,8 +181,8 @@ export class ApiService {
     });
   }
 
-  async addBlogPost<TBody extends JsonObject>(projectId: Uuid, body: TBody) {
-    return this.request<ProjectBlogPostDto, TBody>({
+  async addBlogPost(projectId: Uuid, body: CreateBlogPostRequestDto) {
+    return this.request<ProjectBlogPostDto, CreateBlogPostRequestDto>({
       method: "POST",
       path: `/api/projects/blog-post/project/${projectId}`,
       body,
@@ -197,10 +201,37 @@ export class ApiService {
     });
   }
 
-  async addImageToBlogPost<TBody extends RequestBody>(projectId: Uuid, blogPostId: Uuid, body?: TBody) {
-    await this.requestNoContent<TBody>({
+  async addImageToBlogPost(projectId: Uuid, blogPostId: Uuid, body: DocumentRequestDto) {
+    await this.requestNoContent<DocumentRequestDto>({
       method: "POST",
       path: `/api/projects/blog-post/${projectId}/${blogPostId}/add-image`,
+      body,
+      auth: true,
+    });
+  }
+
+  async updateProjectMainImage(projectId: Uuid, body: DocumentRequestDto) {
+    return this.request<ProjectDto, DocumentRequestDto>({
+      method: "PUT",
+      path: `/api/projects/${projectId}/main-image`,
+      body,
+      auth: true,
+    });
+  }
+
+  async addProjectImage(projectId: Uuid, body: DocumentRequestDto) {
+    return this.request<ProjectDto, DocumentRequestDto>({
+      method: "POST",
+      path: `/api/projects/${projectId}/images`,
+      body,
+      auth: true,
+    });
+  }
+
+  async removeProjectImage(projectId: Uuid, body: DocumentRemoveRequestDto) {
+    return this.request<ProjectDto, DocumentRemoveRequestDto>({
+      method: "DELETE",
+      path: `/api/projects/${projectId}/images`,
       body,
       auth: true,
     });

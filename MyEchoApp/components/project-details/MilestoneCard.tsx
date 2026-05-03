@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { GoalDto } from "../../types/api";
@@ -9,6 +10,7 @@ type MilestoneCardProps = {
   index: number;
   contractAddress?: string | null;
   onDonatePress?: () => void;
+  topRightSlot?: ReactNode;
 };
 
 function formatMilestoneIndex(index: number) {
@@ -33,7 +35,7 @@ function formatEthValue(value: number) {
   return formatEth(value).replace(" ETH", "");
 }
 
-export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: MilestoneCardProps) {
+export function MilestoneCard({ goal, index, contractAddress, onDonatePress, topRightSlot }: MilestoneCardProps) {
   const progressValue = Number(goal.progress);
   const normalizedProgressValue = Number.isFinite(progressValue) ? progressValue : 0;
   const progressPercentage = normalizePercentageProgress(normalizedProgressValue);
@@ -70,7 +72,10 @@ export function MilestoneCard({ goal, index, contractAddress, onDonatePress }: M
   return (
     <View className={cardClassName}>
       <View className="px-5 pb-5 pt-5">
-        <Text className={eyebrowClassName}>{milestoneLabel}</Text>
+        <View className="flex-row items-start justify-between gap-3">
+          <Text className={`flex-1 ${eyebrowClassName}`}>{milestoneLabel}</Text>
+          {topRightSlot ? topRightSlot : null}
+        </View>
         <Text className={titleClassName}>{goal.title?.trim() || " "}</Text>
         <Text className={descriptionClassName}>{description}</Text>
 

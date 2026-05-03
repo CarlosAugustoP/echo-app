@@ -121,6 +121,24 @@ export type CreateProjectRequestDto = {
   goals: CreateProjectGoalRequestDto[];
 };
 
+export type UpdateProjectRequestDto = {
+  title: string;
+  description: string;
+};
+
+export type CreateBlogPostRequestDto = {
+  title: string;
+  content: string;
+};
+
+export type DocumentRequestDto = {
+  base64String: string;
+};
+
+export type DocumentRemoveRequestDto = {
+  imageUrl: string;
+};
+
 export type ProjectDto = {
   id: Uuid;
   title: string;
