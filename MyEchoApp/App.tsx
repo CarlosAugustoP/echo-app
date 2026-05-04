@@ -20,6 +20,7 @@ import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
 import SignupCompletedPage from './pages/SignupCompleted';
 import SignupPage from './pages/Signup';
+import VendorsPage from './pages/Vendors';
 import { RootStackParamList } from './navigation/types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,6 +44,7 @@ export default function App() {
           <Stack.Screen name="ProjectsList" component={ProjectsListPage} />
           <Stack.Screen name="PendingProjectDonations" component={PendingProjectDonationsPage} />
           <Stack.Screen name="CreateProject" component={CreateProjectPage} />
+          <Stack.Screen name="Vendors" component={VendorsPage} />
           <Stack.Screen name="Dashboard" component={DashboardPage} />
           <Stack.Screen name="Profile" component={ProfilePage} />
           <Stack.Screen name="DonationHistory" component={DonationHistoryPage} />

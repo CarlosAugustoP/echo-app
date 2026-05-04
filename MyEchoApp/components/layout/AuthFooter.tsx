@@ -160,7 +160,10 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
     }
 
     if (tab === "fornecedores") {
-      showUnavailableMessage("Fornecedores");
+      if (route.name !== "Vendors") {
+        navigation.navigate("Vendors");
+      }
+
       return;
     }
 

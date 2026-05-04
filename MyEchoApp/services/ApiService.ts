@@ -28,6 +28,7 @@ import type {
   UserDto,
   Uuid,
   VendorDto,
+  VendorSearchResponseDto,
   EchoAmountResponseDto,
 } from "../types/api";
 
@@ -343,6 +344,14 @@ export class ApiService {
   async getVendors(query?: QueryParams) {
     return this.requestPlain<PaginatedList<VendorDto>>({
       path: "/api/vendors",
+      query,
+      auth: true,
+    });
+  }
+
+  async searchVendors(query?: QueryParams) {
+    return this.request<VendorSearchResponseDto>({
+      path: "/api/vendors/search",
       query,
       auth: true,
     });

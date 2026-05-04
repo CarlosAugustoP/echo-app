@@ -12,6 +12,7 @@ export type RootStackParamList = {
   ProjectsList: { managerId: Uuid };
   PendingProjectDonations: { projectId: Uuid; projectTitle: string };
   CreateProject: undefined;
+  Vendors: undefined;
   Dashboard: undefined;
   Profile: undefined;
   DonationHistory: undefined;
@@ -39,6 +40,7 @@ export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "App
 export type ProjectsListScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectsList">;
 export type PendingProjectDonationsScreenProps = NativeStackScreenProps<RootStackParamList, "PendingProjectDonations">;
 export type CreateProjectScreenProps = NativeStackScreenProps<RootStackParamList, "CreateProject">;
+export type VendorsScreenProps = NativeStackScreenProps<RootStackParamList, "Vendors">;
 export type DashboardScreenProps = NativeStackScreenProps<RootStackParamList, "Dashboard">;
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, "Profile">;
 export type DonationHistoryScreenProps = NativeStackScreenProps<RootStackParamList, "DonationHistory">;

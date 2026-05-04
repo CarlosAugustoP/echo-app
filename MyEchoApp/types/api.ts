@@ -221,6 +221,12 @@ export type VendorDto = {
   status: VendorStatusCode;
 };
 
+export type VendorSearchResponseDto = {
+  vendors: PaginatedList<VendorDto>;
+  totalPending: number;
+  totalApproved: number;
+};
+
 export type ContributionSummaryDto = {
   totalContributed: DecimalStringOrNumber;
   variationInCurrentMonth: DecimalStringOrNumber;

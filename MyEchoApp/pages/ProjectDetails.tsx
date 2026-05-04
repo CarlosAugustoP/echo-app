@@ -483,6 +483,25 @@ function AddGoalModal({
   );
 }
 
+function confirmAction(title: string, message: string, onConfirm: () => void) {
+  if (Platform.OS === "web" && typeof globalThis.confirm === "function") {
+    if (globalThis.confirm(`${title}\n\n${message}`)) {
+      onConfirm();
+    }
+
+    return;
+  }
+
+  Alert.alert(title, message, [
+    { text: "Cancelar", style: "cancel" },
+    {
+      text: "Remover",
+      style: "destructive",
+      onPress: onConfirm,
+    },
+  ]);
+}
+
 export default function ProjectDetailsPage({ navigation, route }: ProjectDetailsScreenProps) {
   const { currentUser } = useUserStore();
   const [project, setProject] = useState<ProjectDto | null>(null);
@@ -746,26 +765,19 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
       return;
     }
 
-    Alert.alert("Remover imagem", "Deseja remover esta imagem da galeria?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Remover",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              setRemovingImageUrl(imageUrl);
-              const updatedProject = await apiClient.removeProjectImage(project.id, { imageUrl });
-              setProject(updatedProject);
-            } catch (error) {
-              Alert.alert("Nao foi possivel remover", error instanceof Error ? error.message : "Tente novamente.");
-            } finally {
-              setRemovingImageUrl(null);
-            }
-          })();
-        },
-      },
-    ]);
+    confirmAction("Remover imagem", "Deseja remover esta imagem da galeria?", () => {
+      void (async () => {
+        try {
+          setRemovingImageUrl(imageUrl);
+          const updatedProject = await apiClient.removeProjectImage(project.id, { imageUrl });
+          setProject(updatedProject);
+        } catch (error) {
+          Alert.alert("Nao foi possivel remover", error instanceof Error ? error.message : "Tente novamente.");
+        } finally {
+          setRemovingImageUrl(null);
+        }
+      })();
+    });
   };
 
   const handleCreateBlogPost = async () => {
@@ -924,26 +936,19 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
       return;
     }
 
-    Alert.alert("Remover meta", `Deseja remover a meta "${goal.title}"?`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Remover",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              setRemovingGoalId(goal.id);
-              await apiClient.removeGoal(project.id, goal.id);
-              await loadProject();
-            } catch (error) {
-              Alert.alert("Nao foi possivel remover", error instanceof Error ? error.message : "Tente novamente.");
-            } finally {
-              setRemovingGoalId(null);
-            }
-          })();
-        },
-      },
-    ]);
+    confirmAction("Remover meta", `Deseja remover a meta "${goal.title}"?`, () => {
+      void (async () => {
+        try {
+          setRemovingGoalId(goal.id);
+          await apiClient.removeGoal(project.id, goal.id);
+          await loadProject();
+        } catch (error) {
+          Alert.alert("Nao foi possivel remover", error instanceof Error ? error.message : "Tente novamente.");
+        } finally {
+          setRemovingGoalId(null);
+        }
+      })();
+    });
   };
 
   return (
