@@ -221,6 +221,13 @@ export type VendorDto = {
   status: VendorStatusCode;
 };
 
+export type CreateVendorRequestDto = {
+  taxId: string;
+  name: string;
+  walletAddress: string;
+  typeItemSupply: string;
+};
+
 export type VendorSearchResponseDto = {
   vendors: PaginatedList<VendorDto>;
   totalPending: number;

@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SkeletonBlock } from "../components/common/Skeleton";
@@ -221,15 +222,20 @@ function VendorCardSkeleton() {
   );
 }
 
-export default function VendorsPage({}: VendorsScreenProps) {
+export default function VendorsPage({ navigation }: VendorsScreenProps) {
   const [vendors, setVendors] = useState<VendorDto[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [totalApproved, setTotalApproved] = useState(0);
   const [totalPending, setTotalPending] = useState(0);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
     let isMounted = true;
     const timeoutId = setTimeout(async () => {
       try {
@@ -271,7 +277,7 @@ export default function VendorsPage({}: VendorsScreenProps) {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [searchValue]);
+  }, [isFocused, searchValue]);
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="fornecedores">
@@ -282,9 +288,13 @@ export default function VendorsPage({}: VendorsScreenProps) {
               Transparencia e impacto
             </Text>
 
-            <View className="h-9 w-9 items-center justify-center rounded-[12px] bg-[#2F7D32]">
+            <Pressable
+              onPress={() => navigation.navigate("CreateVendor")}
+              className="h-9 w-9 items-center justify-center rounded-[12px] bg-[#2F7D32]"
+              style={({ pressed }) => (pressed ? { opacity: 0.86, transform: [{ scale: 0.97 }] } : undefined)}
+            >
               <Ionicons name="add" size={18} color="#FFFFFF" />
-            </View>
+            </Pressable>
           </View>
 
           <View className="gap-1">

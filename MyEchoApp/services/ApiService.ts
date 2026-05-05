@@ -6,6 +6,7 @@ import type {
   CreateBlogPostRequestDto,
   CreateProjectGoalRequestDto,
   CreateProjectRequestDto,
+  CreateVendorRequestDto,
   DocumentRemoveRequestDto,
   DocumentRequestDto,
   DonationRequestDto,
@@ -321,8 +322,8 @@ export class ApiService {
     });
   }
 
-  async createVendor<TBody extends JsonObject>(body: TBody) {
-    return this.request<VendorDto, TBody>({
+  async createVendor(body: CreateVendorRequestDto) {
+    return this.request<VendorDto, CreateVendorRequestDto>({
       method: "POST",
       path: "/api/vendors",
       body,

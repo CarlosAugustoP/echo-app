@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppHomePage from './pages/AppHome';
 import CreateProjectPage from './pages/CreateProject';
+import CreateVendorPage from './pages/CreateVendor';
 import DashboardPage from './pages/Dashboard';
 import DonationDetailsPage from './pages/DonationDetails';
 import DonationHistoryPage from './pages/DonationHistory';
@@ -20,6 +21,7 @@ import RoleDetailsPage from './pages/RoleDetails';
 import SigninPage from './pages/Signin';
 import SignupCompletedPage from './pages/SignupCompleted';
 import SignupPage from './pages/Signup';
+import VendorOnboardingStatusPage from './pages/VendorOnboardingStatus';
 import VendorsPage from './pages/Vendors';
 import { RootStackParamList } from './navigation/types';
 
@@ -44,6 +46,8 @@ export default function App() {
           <Stack.Screen name="ProjectsList" component={ProjectsListPage} />
           <Stack.Screen name="PendingProjectDonations" component={PendingProjectDonationsPage} />
           <Stack.Screen name="CreateProject" component={CreateProjectPage} />
+          <Stack.Screen name="CreateVendor" component={CreateVendorPage} />
+          <Stack.Screen name="VendorOnboardingStatus" component={VendorOnboardingStatusPage} />
           <Stack.Screen name="Vendors" component={VendorsPage} />
           <Stack.Screen name="Dashboard" component={DashboardPage} />
           <Stack.Screen name="Profile" component={ProfilePage} />
