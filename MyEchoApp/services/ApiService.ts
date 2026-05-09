@@ -23,6 +23,8 @@ import type {
   ProjectDto,
   ProjectHeaderDto,
   QueryParams,
+  RegisterPushDeviceRequestDto,
+  UnregisterPushDeviceRequestDto,
   UpdateProjectRequestDto,
   UpdateWalletAddressRequestDto,
   UpdateUserRequestDto,
@@ -53,7 +55,11 @@ export type ApiServiceOptions = {
   defaultHeaders?: Record<string, string>;
 };
 
-const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5087";
+export const DEFAULT_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:5087";
+
+export function resolveApiBaseUrl(baseUrl?: string) {
+  return (baseUrl ?? DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+}
 
 export class ApiServiceError extends Error {
   status: number;
@@ -75,7 +81,7 @@ export class ApiService {
   private readonly defaultHeaders: Record<string, string>;
 
   constructor({ baseUrl, getAccessToken, defaultHeaders }: ApiServiceOptions) {
-    this.baseUrl = (baseUrl ?? DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+    this.baseUrl = resolveApiBaseUrl(baseUrl);
     this.getAccessToken = getAccessToken;
     this.defaultHeaders = defaultHeaders ?? {};
   }
@@ -90,6 +96,24 @@ export class ApiService {
 
   async me() {
     return this.request<UserDto>({ path: "/api/auth/me", auth: true });
+  }
+
+  async registerPushDevice(body: RegisterPushDeviceRequestDto) {
+    await this.requestNoContent<RegisterPushDeviceRequestDto>({
+      method: "POST",
+      path: "/api/notifications/push-devices",
+      body,
+      auth: true,
+    });
+  }
+
+  async unregisterPushDevice(body: UnregisterPushDeviceRequestDto) {
+    await this.requestNoContent<UnregisterPushDeviceRequestDto>({
+      method: "POST",
+      path: "/api/notifications/push-devices/unregister",
+      body,
+      auth: true,
+    });
   }
 
   async getEchoAmount() {

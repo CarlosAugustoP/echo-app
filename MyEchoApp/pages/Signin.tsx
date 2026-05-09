@@ -7,8 +7,7 @@ import { Logo } from "../components/logo/logo";
 import { SigninScreenProps } from "../navigation/types";
 import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
-import { setAccessToken } from "../services/authStorage";
-import { setCurrentUser } from "../stores/userStore";
+import { signInSession } from "../services/session";
 
 const gandhiPortrait = require("../assets/gandhi.png");
 
@@ -34,9 +33,8 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
         password,
       });
 
-      await setAccessToken(token);
       const currentUser = await apiClient.me();
-      setCurrentUser(currentUser);
+      await signInSession(token, currentUser);
       navigation.replace("AppHome");
     } catch (error) {
       if (error instanceof ApiServiceError) {

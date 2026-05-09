@@ -21,8 +21,8 @@ import { AppLayout } from "../components/layout/AppLayout";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { ProfileScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import { clearAccessToken } from "../services/authStorage";
-import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
+import { signOutSession } from "../services/session";
+import { setCurrentUser, useUserStore } from "../stores/userStore";
 import type { AddressRequestDto, UpdateUserRequestDto, UserDto } from "../types/api";
 import { getUserRoleLabel } from "../utils/userRoles";
 
@@ -588,8 +588,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
     }
   };
   const handleSignOut = async () => {
-    await clearAccessToken();
-    clearCurrentUser();
+    await signOutSession();
     navigation.replace("Signin");
   };
 

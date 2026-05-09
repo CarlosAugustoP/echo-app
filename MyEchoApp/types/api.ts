@@ -56,6 +56,17 @@ export type UpdateWalletAddressRequestDto = {
   walletAddress: string;
 };
 
+export type PushDevicePlatform = "android" | "ios";
+
+export type RegisterPushDeviceRequestDto = {
+  token: string;
+  platform: PushDevicePlatform;
+};
+
+export type UnregisterPushDeviceRequestDto = {
+  token: string;
+};
+
 export type UpdateUserRequestDto = {
   name?: string | null;
   email?: string | null;
@@ -211,6 +222,18 @@ export type DonationEventDto = {
   timestamp: IsoDateTimeString;
   message: string;
   statusString: string;
+};
+
+export type NotificationItemDto = {
+  id: Uuid;
+  message: string;
+  description: string;
+  createdAt: IsoDateTimeString;
+  isRead: boolean;
+};
+
+export type UnreadCountUpdatedDto = {
+  count: number;
 };
 
 export type VendorDto = {

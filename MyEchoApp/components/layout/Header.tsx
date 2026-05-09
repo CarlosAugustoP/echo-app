@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Image, Pressable, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 import type { RootStackParamList } from "../../navigation/types";
+import { useNotificationStore } from "../../stores/notificationStore";
 import { useUserStore } from "../../stores/userStore";
 import { Logo } from "../logo/logo";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -36,6 +37,8 @@ function ProfileAvatar() {
 
 export function Header({ variant }: HeaderProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { unreadCount } = useNotificationStore();
+  const unreadBadgeLabel = unreadCount > 99 ? "99+" : `${unreadCount}`;
 
   const handleLogoPress = () => {
     navigation.navigate("AppHome");
@@ -59,7 +62,14 @@ export function Header({ variant }: HeaderProps) {
           className="h-12 w-12 items-center justify-center"
           style={({ pressed }) => (pressed ? { transform: [{ scale: 0.97 }] } : undefined)}
         >
-          <Ionicons name="notifications-outline" size={24} color="#7D8DA7" />
+          <View className="relative">
+            <Ionicons name="notifications-outline" size={24} color="#7D8DA7" />
+            {unreadCount > 0 ? (
+              <View className="absolute -right-2 -top-2 min-w-[18px] items-center justify-center rounded-full bg-[#2F7D32] px-1 py-[1px]">
+                <Text className="text-[10px] font-bold text-white">{unreadBadgeLabel}</Text>
+              </View>
+            ) : null}
+          </View>
         </Pressable>
       </View>
     );

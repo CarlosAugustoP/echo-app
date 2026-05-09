@@ -7,8 +7,7 @@ import { SkeletonBlock } from "../common/Skeleton";
 import { AppLayout } from "../layout/AppLayout";
 import { ProjectCard, ProjectCardSkeleton } from "../project/ProjectCard";
 import { apiClient } from "../../services/apiClient";
-import { clearAccessToken } from "../../services/authStorage";
-import { clearCurrentUser } from "../../stores/userStore";
+import { signOutSession } from "../../services/session";
 import type { AppHomeScreenProps } from "../../navigation/types";
 import type { ProjectDto, UserDto } from "../../types/api";
 
@@ -227,8 +226,7 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
   };
 
   const handleSignOut = async () => {
-    await clearAccessToken();
-    clearCurrentUser();
+    await signOutSession();
     navigation.replace("Signin");
   };
 

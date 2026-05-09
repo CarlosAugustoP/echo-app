@@ -12,8 +12,8 @@ import { StatCard } from "../components/home/StatCard";
 import { AppLayout } from "../components/layout/AppLayout";
 import { AppHomeScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
-import { clearAccessToken } from "../services/authStorage";
-import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
+import { signOutSession } from "../services/session";
+import { setCurrentUser, useUserStore } from "../stores/userStore";
 import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDto } from "../types/api";
 import { isNgoUserRole } from "../utils/userRoles";
 
@@ -219,8 +219,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   }, [currentUser]);
 
   const handleSignOut = async () => {
-    await clearAccessToken();
-    clearCurrentUser();
+    await signOutSession();
     navigation.replace("Signin");
   };
 

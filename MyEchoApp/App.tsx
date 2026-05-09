@@ -1,6 +1,7 @@
 import 'react-native-gesture-handler';
 import './global.css';
 
+import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -24,12 +25,38 @@ import SignupPage from './pages/Signup';
 import VendorOnboardingStatusPage from './pages/VendorOnboardingStatus';
 import VendorsPage from './pages/Vendors';
 import { RootStackParamList } from './navigation/types';
+import { hydrateAccessToken, useAccessTokenState } from './services/authStorage';
+import { notificationService } from './services/notificationService';
+import { useUserStore } from './stores/userStore';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function NotificationSessionCoordinator() {
+  const { currentUser } = useUserStore();
+  const { hydrated, token } = useAccessTokenState();
+
+  useEffect(() => {
+    void hydrateAccessToken();
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    void notificationService.syncSession({
+      accessToken: token,
+      userId: currentUser?.id ?? null,
+    });
+  }, [currentUser?.id, hydrated, token]);
+
+  return null;
+}
 
 export default function App() {
   return (
     <SafeAreaProvider>
+      <NotificationSessionCoordinator />
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Signup"

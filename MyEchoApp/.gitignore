@@ -21,6 +21,10 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Firebase native config
+google-services.json
+GoogleService-Info.plist
+
 # debug
 npm-debug.*
 yarn-debug.*
