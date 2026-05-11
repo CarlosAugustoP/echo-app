@@ -17,6 +17,9 @@ import type {
   GoalTypeDto,
   ImpactByRegionDto,
   JsonObject,
+  MarkNotificationsAsReadRequestDto,
+  MarkNotificationsAsReadResultDto,
+  NotificationItemDto,
   PaginatedList,
   ProjectBlogPostDto,
   ProjectBlogPostHeaderDto,
@@ -24,6 +27,7 @@ import type {
   ProjectHeaderDto,
   QueryParams,
   RegisterPushDeviceRequestDto,
+  UnreadNotificationsCountDto,
   UnregisterPushDeviceRequestDto,
   UpdateProjectRequestDto,
   UpdateWalletAddressRequestDto,
@@ -111,6 +115,30 @@ export class ApiService {
     await this.requestNoContent<UnregisterPushDeviceRequestDto>({
       method: "POST",
       path: "/api/notifications/push-devices/unregister",
+      body,
+      auth: true,
+    });
+  }
+
+  async getUnreadNotificationsCount() {
+    return this.request<UnreadNotificationsCountDto>({
+      path: "/api/notifications/unread-count",
+      auth: true,
+    });
+  }
+
+  async getNotifications(query?: QueryParams) {
+    return this.request<PaginatedList<NotificationItemDto>>({
+      path: "/api/notifications",
+      query,
+      auth: true,
+    });
+  }
+
+  async markNotificationsAsRead(body: MarkNotificationsAsReadRequestDto) {
+    return this.request<MarkNotificationsAsReadResultDto, MarkNotificationsAsReadRequestDto>({
+      method: "POST",
+      path: "/api/notifications/read",
       body,
       auth: true,
     });

@@ -125,3 +125,30 @@ export function addNotificationItem(item: NotificationItemDto) {
     unreadCount: Math.max(0, nextUnreadCount),
   });
 }
+
+export function markNotificationItemsAsRead(notificationIds: readonly string[]) {
+  if (notificationIds.length === 0) {
+    return;
+  }
+
+  const notificationIdsSet = new Set(notificationIds);
+  let updatedUnreadCount = state.unreadCount;
+
+  const nextItems = state.items.map((item) => {
+    if (!notificationIdsSet.has(item.id) || item.isRead) {
+      return item;
+    }
+
+    updatedUnreadCount -= 1;
+    return {
+      ...item,
+      isRead: true,
+    };
+  });
+
+  setState({
+    ...state,
+    items: nextItems,
+    unreadCount: Math.max(0, updatedUnreadCount),
+  });
+}

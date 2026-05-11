@@ -187,6 +187,7 @@ class NotificationService {
     setNotificationError("");
     this.attachExpoNotificationListeners();
 
+    await this.loadInitialUnreadCount();
     await this.registerPushDeviceIfPossible();
     await this.startRealtimeConnection(session.accessToken);
   }
@@ -279,6 +280,21 @@ class NotificationService {
   private applyUnreadCountUpdate(unreadCountPayload: UnreadCountUpdatedDto) {
     setUnreadCount(unreadCountPayload.count);
     void this.syncBadgeCount(unreadCountPayload.count);
+  }
+
+  private async loadInitialUnreadCount() {
+    if (!this.currentAccessToken) {
+      return;
+    }
+
+    try {
+      const unreadCountResponse = await apiClient.getUnreadNotificationsCount();
+      this.applyUnreadCountUpdate(unreadCountResponse);
+    } catch (error) {
+      setNotificationError(
+        error instanceof Error ? error.message : "Nao foi possivel carregar o contador inicial de notificacoes.",
+      );
+    }
   }
 
   private async syncBadgeCount(unreadCount: number) {

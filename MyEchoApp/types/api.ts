@@ -236,6 +236,18 @@ export type UnreadCountUpdatedDto = {
   count: number;
 };
 
+export type UnreadNotificationsCountDto = {
+  count: number;
+};
+
+export type MarkNotificationsAsReadRequestDto = {
+  notificationIds: Uuid[];
+};
+
+export type MarkNotificationsAsReadResultDto = {
+  updatedCount: number;
+};
+
 export type VendorDto = {
   id: Uuid;
   typeItemSupply: string;

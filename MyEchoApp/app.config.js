@@ -20,6 +20,7 @@ module.exports = {
       backgroundColor: "#ffffff",
     },
     ios: {
+      bundleIdentifier: "com.echo.echoclientios",
       supportsTablet: true,
       ...(fs.existsSync(iosGoogleServicesFile)
         ? {
@@ -32,6 +33,7 @@ module.exports = {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      package: "com.echo.echoclient",
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       ...(fs.existsSync(androidGoogleServicesFile)

@@ -363,28 +363,20 @@ export default function DonationTimelinePage({ navigation, route }: DonationTime
                             />
                           </View>
 
-                          <View className="flex-1">
-                            <View className="flex-row items-start justify-between gap-3">
-                              <View className="flex-1">
-                                <Text className="text-[15px] font-semibold leading-6 text-[#202124]">
+                          <View className="min-w-0 flex-1">
+                            <View className="gap-1">
+                              <Text className="text-[11px] font-semibold uppercase tracking-[0.8px] text-[#7A8480]">
+                                {formatReadableItemLabel(donation.amount, donation.nameItem)}
+                              </Text>
+                              <View className="min-w-0 flex-row items-start justify-between gap-3">
+                                <Text className="min-w-0 flex-1 text-[15px] font-semibold leading-6 text-[#202124]" numberOfLines={3}>
                                   {donation.projectName}
                                 </Text>
-                                <Text className="mt-1 text-[13px] font-bold text-[#2F7D32]">
+                                <Text className="shrink-0 text-[13px] font-bold text-[#2F7D32]">
                                   {formatEthValue(donation.totalCost)}
-
-                                </Text>
-                              </View>
-
-                              <View className="items-end">
-
-                                <Text className="text-[15px] font-normal  text-[#7A8480]">
-                                  {formatReadableItemLabel(donation.amount, donation.nameItem)}
-
                                 </Text>
                               </View>
                             </View>
-
-
                           </View>
                         </View>
                       ) : shouldRenderVendorCard ? (

@@ -11,6 +11,7 @@ import { SectionTitle } from "../components/home/SectionTitle";
 import { StatCard } from "../components/home/StatCard";
 import { AppLayout } from "../components/layout/AppLayout";
 import { AppHomeScreenProps } from "../navigation/types";
+import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
 import { signOutSession } from "../services/session";
 import { setCurrentUser, useUserStore } from "../stores/userStore";
@@ -132,7 +133,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         if (isMounted) {
           setCurrentUser(user);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiServiceError && error.status === 401) {
+          await signOutSession();
+        }
+
         if (isMounted) {
           navigation.replace("Signin");
         }
