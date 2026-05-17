@@ -1,7 +1,7 @@
 import type { HubConnection } from "@microsoft/signalr";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { NativeModules, Platform } from "react-native";
 
 import { resolveApiBaseUrl } from "./ApiService";
 import { apiClient } from "./apiClient";
@@ -28,6 +28,9 @@ type StopOptions = {
 };
 
 type UnknownRecord = Record<string, unknown>;
+
+const NATIVE_FIREBASE_MESSAGING_UNAVAILABLE_MESSAGE =
+  "Native Firebase messaging is unavailable in this runtime. Install a development or production build with the React Native Firebase modules bundled; Expo Go cannot load RNFBAppModule.";
 
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
@@ -147,6 +150,22 @@ function collectCandidates(value: unknown) {
   }
 
   return candidates;
+}
+
+function hasNativeFirebaseMessagingModules() {
+  if (Platform.OS === "web") {
+    return false;
+  }
+
+  return Boolean(NativeModules.RNFBAppModule && NativeModules.RNFBMessagingModule);
+}
+
+async function importNativeFirebaseMessagingModule() {
+  if (!hasNativeFirebaseMessagingModules()) {
+    throw new Error(NATIVE_FIREBASE_MESSAGING_UNAVAILABLE_MESSAGE);
+  }
+
+  return import("@react-native-firebase/messaging");
 }
 
 class NotificationService {
@@ -355,7 +374,7 @@ class NotificationService {
     }
 
     if (Platform.OS === "ios") {
-      const messagingModule = await import("@react-native-firebase/messaging");
+      const messagingModule = await importNativeFirebaseMessagingModule();
       const messaging = messagingModule.getMessaging();
 
       if (!messagingModule.isDeviceRegisteredForRemoteMessages(messaging)) {
@@ -381,7 +400,7 @@ class NotificationService {
       return null;
     }
 
-    const messagingModule = await import("@react-native-firebase/messaging");
+    const messagingModule = await importNativeFirebaseMessagingModule();
     const messaging = messagingModule.getMessaging();
 
     if (Platform.OS === "ios" && !messagingModule.isDeviceRegisteredForRemoteMessages(messaging)) {
@@ -396,7 +415,7 @@ class NotificationService {
       return;
     }
 
-    const messagingModule = await import("@react-native-firebase/messaging");
+    const messagingModule = await importNativeFirebaseMessagingModule();
     const messaging = messagingModule.getMessaging();
 
     this.tokenRefreshUnsubscribe = messagingModule.onTokenRefresh(messaging, (token) => {
@@ -424,6 +443,12 @@ class NotificationService {
         setNotificationPermissionStatus("unsupported");
       }
 
+      return;
+    }
+
+    if (!hasNativeFirebaseMessagingModules()) {
+      setNotificationPermissionStatus("unsupported");
+      setNotificationError(NATIVE_FIREBASE_MESSAGING_UNAVAILABLE_MESSAGE);
       return;
     }
 

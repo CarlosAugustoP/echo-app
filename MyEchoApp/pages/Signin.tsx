@@ -76,7 +76,6 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
             <View className="rounded-[22px] bg-white p-4 shadow-sm">
               <Logo />
             </View>
-z
             <Text className="mt-8 text-center text-[21px] font-extrabold leading-9 text-[#3D4540]">
               "Seja a mudança que você deseja ver no mundo."
             </Text>
