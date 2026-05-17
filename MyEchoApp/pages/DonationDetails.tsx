@@ -7,6 +7,7 @@ import {
   ScrollView,
   Share,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -229,8 +230,12 @@ function getFlowContent(step: DonationFlowStep) {
 export default function DonationDetailsPage({ navigation, route }: DonationDetailsScreenProps) {
   const { goal, goalIndex, projectTitle, smartContractAddress } = route.params;
   const { currentUser } = useUserStore();
+  const initialIsMoneyGoal = isMoneyGoalType(goal.goalType?.name);
 
   const [quantity, setQuantity] = useState(1);
+  const [moneyDonationInput, setMoneyDonationInput] = useState(
+    initialIsMoneyGoal ? sanitizeDecimalString(String(goal.costPerUnit ?? "0")) : "",
+  );
   const [isSubmittingDonation, setIsSubmittingDonation] = useState(false);
   const [flowStep, setFlowStep] = useState<DonationFlowStep>("idle");
   const [lastTransactionHash, setLastTransactionHash] = useState("");
@@ -243,11 +248,12 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
   const unitPriceInput =
     goal.costPerUnit !== null && goal.costPerUnit !== undefined ? sanitizeDecimalString(String(goal.costPerUnit)) : "0";
   const unitPriceWei = parseEthStringToWei(unitPriceInput);
-  const totalPriceWei = unitPriceWei * BigInt(quantity);
+  const isMoneyGoal = isMoneyGoalType(goal.goalType?.name);
+  const normalizedMoneyDonationInput = sanitizeDecimalString(moneyDonationInput);
+  const totalPriceWei = isMoneyGoal ? parseEthStringToWei(normalizedMoneyDonationInput) : unitPriceWei * BigInt(quantity);
   const unitPriceDisplay = formatWeiToEthDisplay(unitPriceWei);
   const totalPriceDisplay = formatWeiToEthDisplay(totalPriceWei);
   const totalAmountEth = parseDecimalNumber(totalPriceDisplay);
-  const isMoneyGoal = isMoneyGoalType(goal.goalType?.name);
   const donationAmount = isMoneyGoal ? totalAmountEth : quantity;
   const hasValidWalletAddress = ETHEREUM_ADDRESS_REGEX.test(walletAddress);
   const hasValidContractAddress = ETHEREUM_ADDRESS_REGEX.test(normalizedContractAddress);
@@ -284,6 +290,21 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
     !isSubmittingDonation;
   const summaryItemLabel = isMoneyGoal ? "Contribuição direta" : `${quantity}x ${itemLabel}`;
   const flowContent = getFlowContent(flowStep);
+
+  const handleMoneyDonationInputChange = (value: string) => {
+    const normalizedValue = value.replace(",", ".");
+
+    if (normalizedValue.length === 0) {
+      setMoneyDonationInput("");
+      return;
+    }
+
+    if (!/^\d*(\.\d{0,6})?$/.test(normalizedValue)) {
+      return;
+    }
+
+    setMoneyDonationInput(normalizedValue);
+  };
 
   const handleShareJourney = async () => {
     try {
@@ -493,6 +514,27 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
           <View className="mt-5 gap-4">
             <Text className="text-[12px] font-semibold text-[#525B57]">{itemLabel}</Text>
 
+            {isMoneyGoal ? (
+              <View className="gap-3">
+                <Text className="text-[12px] leading-5 text-[#6B7280]">Digite o valor da contribuição em ETH.</Text>
+
+                <View className="flex-row items-center rounded-[18px] border border-[#D9E5FB] bg-[#F6F9FF] px-4 py-3">
+                  <Text className="mr-3 text-[28px] font-semibold leading-8 text-[#2B5BB5]">ETH</Text>
+                  <TextInput
+                    value={moneyDonationInput}
+                    onChangeText={handleMoneyDonationInputChange}
+                    placeholder="0.003"
+                    placeholderTextColor="#8BA0D6"
+                    keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]"
+                  />
+                </View>
+              </View>
+            ) : null}
+
+            {!isMoneyGoal ? (
             <View className="flex-row items-center justify-between gap-4">
               <Text className="flex-1 text-[28px] font-semibold leading-8 text-[#2B5BB5]">{`Ξ ${unitPriceDisplay}`}</Text>
 
@@ -522,6 +564,7 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
                 </Pressable>
               </View>
             </View>
+            ) : null}
           </View>
 
           <View className="mt-6 rounded-[18px] border border-[#E3ECFD] bg-[#F6F9FF] px-4 py-4">
@@ -532,7 +575,9 @@ export default function DonationDetailsPage({ navigation, route }: DonationDetai
 
             <View className="mt-4 gap-2">
               <View className="flex-row items-center justify-between gap-4">
-                <Text className="flex-1 text-[12px] leading-5 text-[#5B6E97]">{`${quantity}x ${itemLabel}`}</Text>
+                <Text className="flex-1 text-[12px] leading-5 text-[#5B6E97]">
+                  {isMoneyGoal ? summaryItemLabel : `${quantity}x ${itemLabel}`}
+                </Text>
                 <Text className="text-[12px] font-medium text-[#5B6E97]">{`Ξ ${totalPriceDisplay}`}</Text>
               </View>
 

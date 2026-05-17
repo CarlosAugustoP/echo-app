@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { SkeletonBlock } from "../components/common/Skeleton";
+import { AdminHomeContent } from "../components/home/AdminHomeContent";
 import { ImpactSummaryCard } from "../components/home/ImpactSummaryCard";
 import { NgoHomeContent } from "../components/home/NgoHomeContent";
 import { ProjectCarousel, type ProjectData } from "../components/home/ProjectCarousel";
@@ -11,11 +12,12 @@ import { SectionTitle } from "../components/home/SectionTitle";
 import { StatCard } from "../components/home/StatCard";
 import { AppLayout } from "../components/layout/AppLayout";
 import { AppHomeScreenProps } from "../navigation/types";
+import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
-import { clearAccessToken } from "../services/authStorage";
-import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
+import { signOutSession } from "../services/session";
+import { setCurrentUser, useUserStore } from "../stores/userStore";
 import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDto } from "../types/api";
-import { isNgoUserRole } from "../utils/userRoles";
+import { isAdminUserRole, isNgoUserRole } from "../utils/userRoles";
 
 const defaultBlogImage = require("../assets/splash-icon.png");
 
@@ -132,7 +134,11 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
         if (isMounted) {
           setCurrentUser(user);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiServiceError && error.status === 401) {
+          await signOutSession();
+        }
+
         if (isMounted) {
           navigation.replace("Signin");
         }
@@ -155,7 +161,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
       return;
     }
 
-    if (isNgoUserRole(currentUser.role)) {
+    if (isNgoUserRole(currentUser.role) || isAdminUserRole(currentUser.role)) {
       setIsLoadingHomeData(false);
       return;
     }
@@ -219,8 +225,7 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   }, [currentUser]);
 
   const handleSignOut = async () => {
-    await clearAccessToken();
-    clearCurrentUser();
+    await signOutSession();
     navigation.replace("Signin");
   };
 
@@ -244,6 +249,10 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   };
 
   const firstName = currentUser?.name?.split(" ")[0] ?? "Carlos";
+
+  if (currentUser && isAdminUserRole(currentUser.role)) {
+    return <AdminHomeContent currentUser={currentUser} navigation={navigation} />;
+  }
 
   if (currentUser && isNgoUserRole(currentUser.role)) {
     return <NgoHomeContent currentUser={currentUser} isLoadingUser={isLoadingUser} navigation={navigation} />;

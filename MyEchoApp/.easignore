@@ -1,4 +1,4 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Copy of .gitignore with Firebase native config files re-included for EAS uploads
 
 # dependencies
 node_modules/
@@ -47,3 +47,6 @@ yarn-error.*
 .env
 .env.example
 /.env.example
+
+!google-services.json
+!GoogleService-Info.plist

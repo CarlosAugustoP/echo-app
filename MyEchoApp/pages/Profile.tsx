@@ -20,9 +20,10 @@ import { Button } from "../components/common/Button";
 import { AppLayout } from "../components/layout/AppLayout";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { ProfileScreenProps } from "../navigation/types";
+import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
-import { clearAccessToken } from "../services/authStorage";
-import { clearCurrentUser, setCurrentUser, useUserStore } from "../stores/userStore";
+import { signOutSession } from "../services/session";
+import { setCurrentUser, useUserStore } from "../stores/userStore";
 import type { AddressRequestDto, UpdateUserRequestDto, UserDto } from "../types/api";
 import { getUserRoleLabel } from "../utils/userRoles";
 
@@ -56,17 +57,17 @@ function formatWalletLabel(walletAddress?: string | null) {
 
 function formatAddressLine(address?: AddressRequestDto | null) {
   if (!address) {
-    return "Nenhum endereço cadastrado";
+    return "Verifique seus dados de endereço.";
   }
 
   const numberLabel = address.number !== null && address.number !== undefined ? `${address.number}` : "S/N";
   const parts = [address.street, numberLabel, address.neighborhood].filter((value) => value && value.trim().length > 0);
-  return parts.length > 0 ? parts.join(", ") : "Nenhum endereço cadastrado";
+  return parts.length > 0 ? parts.join(", ") : "Verifique seus dados de endereço.";
 }
 
 function formatAddressDetail(address?: AddressRequestDto | null) {
   if (!address) {
-    return "Adicione seu endereço para manter o perfil completo.";
+    return "Adicione ou atualize seu endereço.";
   }
 
   const parts = [address.city, address.state, address.zipCode, address.countryCode]
@@ -448,6 +449,12 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
         if (userResult.status === "fulfilled") {
           setCurrentUser(userResult.value);
         } else {
+          const reason = userResult.reason;
+
+          if (reason instanceof ApiServiceError && reason.status === 401) {
+            await signOutSession();
+          }
+
           navigation.replace("Signin");
           return;
         }
@@ -588,8 +595,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
     }
   };
   const handleSignOut = async () => {
-    await clearAccessToken();
-    clearCurrentUser();
+    await signOutSession();
     navigation.replace("Signin");
   };
 

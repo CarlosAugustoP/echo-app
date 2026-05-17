@@ -5,7 +5,7 @@ import { Alert, Platform, Pressable, Text, View } from "react-native";
 
 import type { RootStackParamList } from "../../navigation/types";
 import { useUserStore } from "../../stores/userStore";
-import { isNgoUserRole } from "../../utils/userRoles";
+import { isAdminUserRole, isNgoUserRole } from "../../utils/userRoles";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type AuthFooterTab = "inicio" | "historico" | "dashboard" | "perfil" | "projetos" | "fornecedores";
@@ -96,12 +96,38 @@ const ngoFooterItems: Array<{
   },
 ];
 
+const adminFooterItems: Array<{
+  key: AuthFooterTab;
+  label: string;
+  icon: (isActive: boolean) => ReactNode;
+}> = [
+  {
+    key: "inicio",
+    label: "PAINEL",
+    icon: (isActive) => (
+      <MaterialCommunityIcons
+        name={isActive ? "shield-account" : "shield-account-outline"}
+        size={24}
+        color={isActive ? "#2F7D32" : "#91A2BF"}
+      />
+    ),
+  },
+  {
+    key: "perfil",
+    label: "PERFIL",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "person" : "person-outline"} size={22} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+];
+
 export function AuthFooter({ activeTab }: AuthFooterProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const { currentUser } = useUserStore();
+  const isAdminUser = isAdminUserRole(currentUser?.role);
   const isNgoUser = isNgoUserRole(currentUser?.role);
-  const footerItems = isNgoUser ? ngoFooterItems : donorFooterItems;
+  const footerItems = isAdminUser ? adminFooterItems : isNgoUser ? ngoFooterItems : donorFooterItems;
 
   const showUnavailableMessage = (label: string) => {
     const title = `${label} em breve`;

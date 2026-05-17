@@ -8,7 +8,7 @@ import { SigninScreenProps } from "../navigation/types";
 import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
 import { setAccessToken } from "../services/authStorage";
-import { setCurrentUser } from "../stores/userStore";
+import { signInSession, signOutSession } from "../services/session";
 
 const gandhiPortrait = require("../assets/gandhi.png");
 
@@ -36,9 +36,11 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
 
       await setAccessToken(token);
       const currentUser = await apiClient.me();
-      setCurrentUser(currentUser);
+      await signInSession(token, currentUser);
       navigation.replace("AppHome");
     } catch (error) {
+      await signOutSession();
+
       if (error instanceof ApiServiceError) {
         setSubmitError(error.message);
       } else if (error instanceof Error) {
@@ -74,7 +76,6 @@ export default function SigninPage({ navigation }: SigninScreenProps) {
             <View className="rounded-[22px] bg-white p-4 shadow-sm">
               <Logo />
             </View>
-
             <Text className="mt-8 text-center text-[21px] font-extrabold leading-9 text-[#3D4540]">
               "Seja a mudança que você deseja ver no mundo."
             </Text>

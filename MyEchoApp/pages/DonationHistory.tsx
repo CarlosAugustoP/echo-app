@@ -58,8 +58,7 @@ function formatReadableItemLabel(value: string) {
   return value
     .trim()
     .replaceAll("_", " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replace(/\s+/g, " ");
 }
 
 function formatDonationAmountLabel(amount: number | string, itemLabel?: string | null) {
@@ -302,7 +301,7 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
       setIsLoadingMore(false);
     }
   };
-
+  
   const handleOpenDonation = (donation: DonationDto) => {
     navigation.navigate("DonationTimeline", { donation });
   };
