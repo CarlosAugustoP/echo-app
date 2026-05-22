@@ -96,10 +96,8 @@ export default function ProjectBlogPostPage({ navigation, route }: ProjectBlogPo
   const managerImageUrl = normalizeImageUrl(manager?.profilePicture?.url ?? null);
   const managerName = manager?.name?.trim() || project?.createdByName?.trim() || "ONG";
   const managerDescription =
-    manager?.description?.trim() ||
     manager?.bio?.trim() ||
-    projectDescription ||
-    " ";
+    "Organizacao ativa na rede Echo para receber apoio e publicar projetos de impacto.";
   const contentBlocks = useMemo(() => {
     const content = blogPost?.content?.trim() || "";
 

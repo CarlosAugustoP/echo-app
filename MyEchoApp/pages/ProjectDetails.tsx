@@ -615,10 +615,8 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
   const managerImageUrl = normalizeImageUrl(manager?.profilePicture?.url ?? null);
   const managerName = manager?.name?.trim() || project?.createdByName?.trim() || " ";
   const managerDescription =
-    manager?.description?.trim() ||
     manager?.bio?.trim() ||
-    project?.description?.trim() ||
-    " ";
+    "Organizacao ativa na rede Echo para receber apoio e publicar projetos de impacto.";
   const canDonate = !isNgoUserRole(currentUser?.role);
   const isProjectManager = Boolean(currentUser?.id && project?.createdById && currentUser.id === project.createdById);
   const shouldShowGallerySection = isProjectManager || validGalleryImages.length > 0;

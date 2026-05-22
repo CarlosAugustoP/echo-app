@@ -3,10 +3,12 @@ import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from 
 
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { PageHeader } from "../components/common/PageHeader";
+import type { AuthFooterTab } from "../components/layout/AuthFooter";
 import { AppLayout } from "../components/layout/AppLayout";
 import { ProjectCard, ProjectCardSkeleton } from "../components/project/ProjectCard";
 import type { ProjectsListScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
+import { useUserStore } from "../stores/userStore";
 import type { PaginatedList, ProjectDto, QueryParams } from "../types/api";
 
 const PAGE_SIZE = 10;
@@ -70,11 +72,24 @@ function EmptySectionState({ message }: { message: string }) {
 }
 
 export default function ProjectsListPage({ navigation, route }: ProjectsListScreenProps) {
+  const { currentUser } = useUserStore();
   const [pageState, setPageState] = useState<PaginatedList<ProjectDto> | null>(null);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const isReadOnlyView = Boolean(route.params.readOnly);
+  const isManagerView = Boolean(currentUser?.id && currentUser.id === route.params.managerId && !isReadOnlyView);
+  const ownerName = route.params.ownerName?.trim();
+  const pageTitle = isManagerView ? "Seus projetos" : ownerName ? `Projetos de ${ownerName}` : "Projetos da ONG";
+  const pageDescription = isManagerView
+    ? "Veja todos os projetos da sua organizacao em uma lista simples."
+    : route.params.description?.trim() || "Explore os projetos publicados por esta organizacao na rede Echo.";
+  const emptyMessage = isManagerView
+    ? "Assim que voce criar seus projetos, eles aparecerao aqui."
+    : "Esta ONG ainda nao publicou projetos disponiveis.";
+  const footerTab: AuthFooterTab = route.params.preserveSearchContext ? "pesquisa" : isManagerView ? "projetos" : "inicio";
+  const backLabel = route.params.preserveSearchContext ? "Pesquisa" : "Voltar";
 
   useEffect(() => {
     let isMounted = true;
@@ -115,7 +130,7 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
   }, [route.params.managerId]);
 
   const projectCards = useMemo(() => projects.map(buildProjectListItem), [projects]);
-  const hasMorePages = pageState ? pageState.currentPage < pageState.totalPages : false;
+  const hasMorePages = pageState ? pageState.currentPage + 1 < pageState.totalPages : false;
 
   const handleLoadMore = async () => {
     if (!pageState || isLoadingInitial || isLoadingMore || !hasMorePages) {
@@ -147,7 +162,7 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
   };
 
   return (
-    <AppLayout headerVariant="logged-in" authFooterTab="projetos">
+    <AppLayout headerVariant="logged-in" authFooterTab={footerTab}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 pb-10"
@@ -157,9 +172,9 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
       >
         <PageHeader
           eyebrow="PROJETOS"
-          title="Seus projetos"
-          description="Veja todos os projetos da sua organizacao em uma lista simples."
-          backLabel="Voltar"
+          title={pageTitle}
+          description={pageDescription}
+          backLabel={backLabel}
           onBackPress={() => navigation.goBack()}
         />
 
@@ -182,15 +197,18 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
                     imageUrl={project.imageUrl}
                     hasPendingDonations={project.hasPendingDonations}
                     onViewProject={() => navigation.navigate("ProjectDetails", { projectId: project.id })}
-                    onAllocateDonations={() =>
-                      navigation.navigate("PendingProjectDonations", {
-                        projectId: project.id,
-                        projectTitle: project.title,
-                      })
+                    onAllocateDonations={
+                      isManagerView
+                        ? () =>
+                            navigation.navigate("PendingProjectDonations", {
+                              projectId: project.id,
+                              projectTitle: project.title,
+                            })
+                        : undefined
                     }
                   />
                 ))
-              : <EmptySectionState message="Assim que voce criar seus projetos, eles aparecerao aqui." />}
+              : <EmptySectionState message={emptyMessage} />}
         </View>
 
         {isLoadingMore && !isLoadingInitial && !errorMessage ? (
