@@ -12,7 +12,7 @@ type ProjectCardProps = {
   imageUrl: string | null;
   hasPendingDonations?: boolean;
   onViewProject: () => void;
-  onAllocateDonations: () => void;
+  onAllocateDonations?: () => void;
   variant?: Variant;
 };
 
@@ -105,14 +105,16 @@ export function ProjectCard({
           <Text className="text-[13px] font-semibold text-[#2F7D32]">Ver projeto</Text>
         </Pressable>
 
-        <Pressable
-          onPress={onAllocateDonations}
-          className="flex-row items-center justify-center gap-2 rounded-[18px] bg-[#2F7D32] px-4 py-3.5"
-          style={({ pressed }) => (pressed ? { opacity: 0.88 } : undefined)}
-        >
-          <MaterialCommunityIcons name="hand-heart-outline" size={16} color="#FFFFFF" />
-          <Text className="text-[13px] font-semibold text-white">Alocar</Text>
-        </Pressable>
+        {onAllocateDonations ? (
+          <Pressable
+            onPress={onAllocateDonations}
+            className="flex-row items-center justify-center gap-2 rounded-[18px] bg-[#2F7D32] px-4 py-3.5"
+            style={({ pressed }) => (pressed ? { opacity: 0.88 } : undefined)}
+          >
+            <MaterialCommunityIcons name="hand-heart-outline" size={16} color="#FFFFFF" />
+            <Text className="text-[13px] font-semibold text-white">Alocar</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );

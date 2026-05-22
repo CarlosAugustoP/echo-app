@@ -70,6 +70,7 @@ export type UnregisterPushDeviceRequestDto = {
 export type UpdateUserRequestDto = {
   name?: string | null;
   email?: string | null;
+  bio?: string | null;
   address?: AddressRequestDto | null;
   profilePictureBase64?: string | null;
 };

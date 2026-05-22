@@ -173,6 +173,13 @@ export class ApiService {
     return this.request<UserDto>({ path: `/api/user-profile/${id}` });
   }
 
+  async searchNgos(query?: QueryParams) {
+    return this.request<PaginatedList<UserDto>>({
+      path: "/api/user-profile/ngos",
+      query,
+    });
+  }
+
   async getProjectsByManager(managerId: Uuid, query?: QueryParams) {
     return this.request<PaginatedList<ProjectDto>>({
       path: `/api/projects/manager/${managerId}`,
@@ -223,6 +230,13 @@ export class ApiService {
   async getTrendingProjects(query?: QueryParams) {
     return this.request<PaginatedList<ProjectHeaderDto>>({
       path: "/api/projects/trending",
+      query,
+    });
+  }
+
+  async searchProjects(query?: QueryParams) {
+    return this.request<PaginatedList<ProjectHeaderDto>>({
+      path: "/api/projects/search",
       query,
     });
   }

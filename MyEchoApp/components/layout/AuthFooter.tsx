@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Alert, Platform, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { RootStackParamList } from "../../navigation/types";
 import { useUserStore } from "../../stores/userStore";
 import { isAdminUserRole, isNgoUserRole } from "../../utils/userRoles";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-type AuthFooterTab = "inicio" | "historico" | "dashboard" | "perfil" | "projetos" | "fornecedores";
+type AuthFooterTab = "inicio" | "pesquisa" | "historico" | "dashboard" | "perfil" | "projetos" | "fornecedores";
 
 type AuthFooterProps = {
   activeTab: AuthFooterTab;
@@ -24,6 +24,13 @@ const donorFooterItems: Array<{
     label: "INICIO",
     icon: (isActive) => (
       <Ionicons name={isActive ? "home" : "home-outline"} size={24} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+  {
+    key: "pesquisa",
+    label: "PESQUISA",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "search" : "search-outline"} size={22} color={isActive ? "#2F7D32" : "#91A2BF"} />
     ),
   },
   {
@@ -63,6 +70,13 @@ const ngoFooterItems: Array<{
     label: "INICIO",
     icon: (isActive) => (
       <Ionicons name={isActive ? "home" : "home-outline"} size={24} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+  {
+    key: "pesquisa",
+    label: "PESQUISA",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "search" : "search-outline"} size={22} color={isActive ? "#2F7D32" : "#91A2BF"} />
     ),
   },
   {
@@ -129,18 +143,6 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
   const isNgoUser = isNgoUserRole(currentUser?.role);
   const footerItems = isAdminUser ? adminFooterItems : isNgoUser ? ngoFooterItems : donorFooterItems;
 
-  const showUnavailableMessage = (label: string) => {
-    const title = `${label} em breve`;
-    const message = `A navegacao para ${label.toLowerCase()} ainda nao esta disponivel nesta versao.`;
-
-    if (Platform.OS === "web") {
-      window.alert(`${title}\n\n${message}`);
-      return;
-    }
-
-    Alert.alert(title, message);
-  };
-
   const handleTabPress = (tab: AuthFooterTab) => {
     if (tab === activeTab) {
       return;
@@ -149,6 +151,14 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
     if (tab === "inicio") {
       if (route.name !== "AppHome") {
         navigation.navigate("AppHome");
+      }
+
+      return;
+    }
+
+    if (tab === "pesquisa") {
+      if (route.name !== "Search") {
+        navigation.navigate("Search");
       }
 
       return;
@@ -208,14 +218,14 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
             <Pressable
               key={item.key}
               onPress={() => handleTabPress(item.key)}
-              className={`min-w-[72px] items-center justify-center rounded-[20px] px-3 py-3 ${
+              className={`flex-1 items-center justify-center rounded-[20px] px-1.5 py-3 ${
                 isActive ? "bg-[#EEF6EE]" : ""
               }`}
               style={({ pressed }) => (pressed && !isActive ? { opacity: 0.72 } : undefined)}
             >
               {item.icon(isActive)}
               <Text
-                className={`mt-1 text-[10px] font-semibold uppercase leading-[10px] tracking-[1px] ${
+                className={`mt-1 text-center text-[9px] font-semibold uppercase leading-[10px] tracking-[0.9px] ${
                   isActive ? "text-[#2F7D32]" : "text-[#91A2BF]"
                 }`}
               >

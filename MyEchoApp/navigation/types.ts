@@ -9,7 +9,14 @@ export type RootStackParamList = {
   SignupCompleted: undefined;
   Signin: undefined;
   AppHome: undefined;
-  ProjectsList: { managerId: Uuid };
+  Search: undefined;
+  ProjectsList: {
+    managerId: Uuid;
+    ownerName?: string;
+    description?: string;
+    readOnly?: boolean;
+    preserveSearchContext?: boolean;
+  };
   PendingProjectDonations: { projectId: Uuid; projectTitle: string };
   CreateProject: undefined;
   CreateVendor: undefined;
@@ -43,6 +50,7 @@ export type RoleDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 
 export type SignupCompletedScreenProps = NativeStackScreenProps<RootStackParamList, "SignupCompleted">;
 export type SigninScreenProps = NativeStackScreenProps<RootStackParamList, "Signin">;
 export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "AppHome">;
+export type SearchScreenProps = NativeStackScreenProps<RootStackParamList, "Search">;
 export type ProjectsListScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectsList">;
 export type PendingProjectDonationsScreenProps = NativeStackScreenProps<RootStackParamList, "PendingProjectDonations">;
 export type CreateProjectScreenProps = NativeStackScreenProps<RootStackParamList, "CreateProject">;

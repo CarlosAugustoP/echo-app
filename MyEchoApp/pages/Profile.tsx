@@ -161,7 +161,7 @@ function buildMergedUpdatedUser(
   };
 }
 
-type EditTarget = "name" | "profilePicture" | "address" | null;
+type EditTarget = "name" | "bio" | "profilePicture" | "address" | null;
 
 type PencilActionProps = {
   onPress: () => void;
@@ -195,6 +195,7 @@ type EditProfileModalProps = {
   isSaving: boolean;
   saveError: string;
   nameDraft: string;
+  bioDraft: string;
   profilePicturePreviewUri: string;
   isPickingImage: boolean;
   addressDraft: {
@@ -207,6 +208,7 @@ type EditProfileModalProps = {
     neighborhood: string;
   };
   onChangeName: (value: string) => void;
+  onChangeBio: (value: string) => void;
   onChooseProfilePicture: () => void;
   onChangeAddress: (field: string, value: string) => void;
   onClose: () => void;
@@ -219,10 +221,12 @@ function EditProfileModal({
   isSaving,
   saveError,
   nameDraft,
+  bioDraft,
   profilePicturePreviewUri,
   isPickingImage,
   addressDraft,
   onChangeName,
+  onChangeBio,
   onChooseProfilePicture,
   onChangeAddress,
   onClose,
@@ -231,6 +235,8 @@ function EditProfileModal({
   const modalTitle =
     target === "name"
       ? "Editar nome"
+      : target === "bio"
+        ? "Editar bio"
       : target === "profilePicture"
         ? "Editar foto do perfil"
         : target === "address"
@@ -240,6 +246,8 @@ function EditProfileModal({
   const modalDescription =
     target === "name"
       ? "Atualize o nome que aparece no seu perfil."
+      : target === "bio"
+        ? "Escreva uma apresentacao curta sobre voce ou sua organizacao."
       : target === "profilePicture"
         ? "Escolha uma imagem da sua galeria para atualizar a foto do perfil."
         : target === "address"
@@ -274,6 +282,25 @@ function EditProfileModal({
                   placeholder="Digite seu nome"
                   placeholderTextColor="#97A19B"
                   className="min-h-[58px] rounded-[18px] bg-[#F2F5F2] px-4 text-[16px] text-[#202124]"
+                />
+              </View>
+            ) : null}
+
+            {target === "bio" ? (
+              <View className="gap-2">
+                <View className="flex-row items-center justify-between gap-3">
+                  <Text className="text-[12px] font-semibold uppercase tracking-[1.7px] text-[#6F7A75]">Bio</Text>
+                  <Text className="text-[11px] text-[#7A8480]">{`${bioDraft.length}/1000`}</Text>
+                </View>
+                <TextInput
+                  value={bioDraft}
+                  onChangeText={onChangeBio}
+                  placeholder="Conte um pouco da sua historia, missao ou area de impacto..."
+                  placeholderTextColor="#97A19B"
+                  multiline
+                  maxLength={1000}
+                  textAlignVertical="top"
+                  className="min-h-[160px] rounded-[18px] bg-[#F2F5F2] px-4 py-4 text-[16px] leading-6 text-[#202124]"
                 />
               </View>
             ) : null}
@@ -424,6 +451,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [nameDraft, setNameDraft] = useState("");
+  const [bioDraft, setBioDraft] = useState("");
   const [profilePictureDraft, setProfilePictureDraft] = useState("");
   const [profilePicturePreviewUri, setProfilePicturePreviewUri] = useState("");
   const [isPickingImage, setIsPickingImage] = useState(false);
@@ -488,6 +516,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
     setSaveError("");
     setEditTarget(target);
     setNameDraft(user?.name ?? "");
+    setBioDraft(user?.bio ?? "");
     setProfilePictureDraft("");
     setProfilePicturePreviewUri(user?.profilePicture?.url ?? "");
     setAddressDraft(createAddressDraft(user?.address));
@@ -564,6 +593,10 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
 
     if (editTarget === "name") {
       payload.name = nameDraft.trim();
+    }
+
+    if (editTarget === "bio") {
+      payload.bio = bioDraft.trim();
     }
 
     if (editTarget === "profilePicture") {
@@ -645,6 +678,12 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
                 <Text className="text-[13px] font-semibold uppercase tracking-[2.3px] text-[#7A847C]">
                   {formatRoleLabel(user?.role)}
                 </Text>
+              </View>
+              <View className="w-full max-w-[320px] items-center gap-3 rounded-[24px] bg-white px-4 py-4">
+                <Text className="text-center text-[14px] leading-6 text-[#66736C]">
+                  {user?.bio?.trim() || "Adicione uma bio para apresentar melhor seu perfil na rede Echo."}
+                </Text>
+                <PencilAction onPress={() => openEditor("bio")} small />
               </View>
             </View>
           </View>
@@ -886,10 +925,12 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
         isSaving={isSavingProfile}
         saveError={saveError}
         nameDraft={nameDraft}
+        bioDraft={bioDraft}
         profilePicturePreviewUri={profilePicturePreviewUri}
         isPickingImage={isPickingImage}
         addressDraft={addressDraft}
         onChangeName={setNameDraft}
+        onChangeBio={setBioDraft}
         onChooseProfilePicture={() => {
           void handleChooseProfilePicture();
         }}
