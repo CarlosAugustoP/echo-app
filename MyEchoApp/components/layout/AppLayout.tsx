@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppTourOverlay } from '../common/AppTourOverlay';
 import { AuthFooter, type AuthFooterTab } from './AuthFooter';
 import { Header, type HeaderVariant } from './Header';
 
@@ -28,6 +29,7 @@ export function AppLayout({
         <View className="flex-1 w-full max-w-md self-center">{children}</View>
       </View>
       {authFooterTab ? <AuthFooter activeTab={authFooterTab} /> : null}
+      <AppTourOverlay />
     </SafeAreaView>
   );
 }

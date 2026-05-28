@@ -42,6 +42,9 @@ export type UserDto = {
   walletAddress: string;
   taxId: TaxIdDto;
   role: UserRoleCode;
+  isFirstAccess?: boolean;
+  verifiedAt?: IsoDateTimeString | null;
+  isVerified?: boolean;
   profilePicture: ImageUrlDto | null;
   address?: AddressRequestDto | null;
   description?: string | null;

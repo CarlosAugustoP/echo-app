@@ -13,6 +13,7 @@ import DashboardPage from './pages/Dashboard';
 import DonationDetailsPage from './pages/DonationDetails';
 import DonationHistoryPage from './pages/DonationHistory';
 import DonationTimelinePage from './pages/DonationTimeline';
+import NgoProfilePage from './pages/NgoProfile';
 import PendingProjectDonationsPage from './pages/PendingProjectDonations';
 import ProfilePage from './pages/Profile';
 import ProjectBlogPostPage from './pages/ProjectBlogPost';
@@ -72,6 +73,7 @@ export default function App() {
           <Stack.Screen name="Signin" component={SigninPage} />
           <Stack.Screen name="AppHome" component={AppHomePage} />
           <Stack.Screen name="Search" component={SearchPage} />
+          <Stack.Screen name="NgoProfile" component={NgoProfilePage} />
           <Stack.Screen name="ProjectsList" component={ProjectsListPage} />
           <Stack.Screen name="PendingProjectDonations" component={PendingProjectDonationsPage} />
           <Stack.Screen name="CreateProject" component={CreateProjectPage} />

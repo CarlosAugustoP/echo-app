@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { StateCard } from "../components/common/StateCard";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -308,7 +309,9 @@ export default function VendorsPage({ navigation }: VendorsScreenProps) {
           </Text>
         </View>
 
-        <VendorHeroCard />
+        <AppTourTarget targetId="tour-vendors-hero">
+          <VendorHeroCard />
+        </AppTourTarget>
 
         <View className="rounded-[22px] border border-[#E9EEEA] bg-white px-4 py-2.5">
           <View className="flex-row items-center gap-3">

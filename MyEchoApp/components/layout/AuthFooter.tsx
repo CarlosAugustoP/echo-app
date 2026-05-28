@@ -3,6 +3,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Pressable, Text, View } from "react-native";
 
+import { AppTourTarget } from "../common/AppTourTarget";
 import type { RootStackParamList } from "../../navigation/types";
 import { useUserStore } from "../../stores/userStore";
 import { isAdminUserRole, isNgoUserRole } from "../../utils/userRoles";
@@ -127,6 +128,13 @@ const adminFooterItems: Array<{
     ),
   },
   {
+    key: "pesquisa",
+    label: "PESQUISA",
+    icon: (isActive) => (
+      <Ionicons name={isActive ? "search" : "search-outline"} size={22} color={isActive ? "#2F7D32" : "#91A2BF"} />
+    ),
+  },
+  {
     key: "perfil",
     label: "PERFIL",
     icon: (isActive) => (
@@ -218,19 +226,24 @@ export function AuthFooter({ activeTab }: AuthFooterProps) {
             <Pressable
               key={item.key}
               onPress={() => handleTabPress(item.key)}
-              className={`flex-1 items-center justify-center rounded-[20px] px-1.5 py-3 ${
-                isActive ? "bg-[#EEF6EE]" : ""
-              }`}
+              className="flex-1 rounded-[20px]"
               style={({ pressed }) => (pressed && !isActive ? { opacity: 0.72 } : undefined)}
             >
-              {item.icon(isActive)}
-              <Text
-                className={`mt-1 text-center text-[9px] font-semibold uppercase leading-[10px] tracking-[0.9px] ${
-                  isActive ? "text-[#2F7D32]" : "text-[#91A2BF]"
+              <AppTourTarget
+                targetId={`tour-footer-${item.key}`}
+                className={`items-center justify-center rounded-[20px] px-1.5 py-3 ${
+                  isActive ? "bg-[#EEF6EE]" : ""
                 }`}
               >
-                {item.label}
-              </Text>
+                {item.icon(isActive)}
+                <Text
+                  className={`mt-1 text-center text-[9px] font-semibold uppercase leading-[10px] tracking-[0.9px] ${
+                    isActive ? "text-[#2F7D32]" : "text-[#91A2BF]"
+                  }`}
+                >
+                  {item.label}
+                </Text>
+              </AppTourTarget>
             </Pressable>
           );
         })}

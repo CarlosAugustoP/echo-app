@@ -3,6 +3,7 @@ import { Animated, Easing, ImageBackground, Pressable, ScrollView, Text, View } 
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import { AppTourTarget } from "../common/AppTourTarget";
 import { SkeletonBlock } from "../common/Skeleton";
 import { AppLayout } from "../layout/AppLayout";
 import { ProjectCard, ProjectCardSkeleton } from "../project/ProjectCard";
@@ -249,16 +250,17 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
           )}
         </View>
 
-        <Pressable
-          className="overflow-hidden rounded-[28px]"
-          disabled={!featuredProject?.id}
-          onPress={() => {
-            if (featuredProject?.id) {
-              handleOpenProject(featuredProject.id);
-            }
-          }}
-          style={({ pressed }) => (pressed && featuredProject?.id ? { opacity: 0.94 } : undefined)}
-        >
+        <AppTourTarget targetId="tour-ngo-home-hero">
+          <Pressable
+            className="overflow-hidden rounded-[28px]"
+            disabled={!featuredProject?.id}
+            onPress={() => {
+              if (featuredProject?.id) {
+                handleOpenProject(featuredProject.id);
+              }
+            }}
+            style={({ pressed }) => (pressed && featuredProject?.id ? { opacity: 0.94 } : undefined)}
+          >
           {isLoading ? (
             <View className="rounded-[28px] bg-[#EEF2EE] p-4">
               <SkeletonBlock height={184} borderRadius={24} />
@@ -305,7 +307,8 @@ export function NgoHomeContent({ currentUser, isLoadingUser, navigation }: NgoHo
               </LinearGradient>
             </ImageBackground>
           )}
-        </Pressable>
+          </Pressable>
+        </AppTourTarget>
 
         {errorMessage ? (
           <View className="rounded-[24px] border border-[#F2D4D4] bg-[#FFF7F7] px-4 py-4">

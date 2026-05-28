@@ -10,6 +10,10 @@ export type RootStackParamList = {
   Signin: undefined;
   AppHome: undefined;
   Search: undefined;
+  NgoProfile: {
+    ngoId: Uuid;
+    preserveSearchContext?: boolean;
+  };
   ProjectsList: {
     managerId: Uuid;
     ownerName?: string;
@@ -51,6 +55,7 @@ export type SignupCompletedScreenProps = NativeStackScreenProps<RootStackParamLi
 export type SigninScreenProps = NativeStackScreenProps<RootStackParamList, "Signin">;
 export type AppHomeScreenProps = NativeStackScreenProps<RootStackParamList, "AppHome">;
 export type SearchScreenProps = NativeStackScreenProps<RootStackParamList, "Search">;
+export type NgoProfileScreenProps = NativeStackScreenProps<RootStackParamList, "NgoProfile">;
 export type ProjectsListScreenProps = NativeStackScreenProps<RootStackParamList, "ProjectsList">;
 export type PendingProjectDonationsScreenProps = NativeStackScreenProps<RootStackParamList, "PendingProjectDonations">;
 export type CreateProjectScreenProps = NativeStackScreenProps<RootStackParamList, "CreateProject">;

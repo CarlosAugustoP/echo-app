@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
+import { AppTourTarget } from "../common/AppTourTarget";
 import { StateCard } from "../common/StateCard";
 import { AppLayout } from "../layout/AppLayout";
 import type { AppHomeScreenProps } from "../../navigation/types";
@@ -166,16 +167,17 @@ export function AdminHomeContent({ currentUser }: AdminHomeContentProps) {
           </Text>
         </View>
 
-        <View
-          className="overflow-hidden rounded-[26px] border border-[#0E2230] bg-[#0D1822] px-5 py-5"
-          style={{
-            shadowColor: "#0A1622",
-            shadowOffset: { width: 0, height: 14 },
-            shadowOpacity: 0.28,
-            shadowRadius: 24,
-            elevation: 5,
-          }}
-        >
+        <AppTourTarget targetId="tour-admin-home-hero">
+          <View
+            className="overflow-hidden rounded-[26px] border border-[#0E2230] bg-[#0D1822] px-5 py-5"
+            style={{
+              shadowColor: "#0A1622",
+              shadowOffset: { width: 0, height: 14 },
+              shadowOpacity: 0.28,
+              shadowRadius: 24,
+              elevation: 5,
+            }}
+          >
           <View className="absolute right-[-18px] top-[-18px] h-[110px] w-[110px] rounded-full bg-[#1B3144]/70" />
           <View className="absolute bottom-[-28px] left-[-18px] h-[128px] w-[128px] rounded-full bg-[#14334D]/45" />
 
@@ -189,7 +191,8 @@ export function AdminHomeContent({ currentUser }: AdminHomeContentProps) {
               Um fornecedor aprovado pode ser vinculado a metas e receber fundos. Rejeições bloqueiam essa entrada na operação.
             </Text>
           </View>
-        </View>
+          </View>
+        </AppTourTarget>
 
         <View className="flex-row gap-3">
           <View className="flex-1 rounded-[20px] border border-[#E7ECE8] bg-white px-4 py-4">
