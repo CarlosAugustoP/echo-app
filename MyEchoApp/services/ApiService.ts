@@ -180,6 +180,14 @@ export class ApiService {
     });
   }
 
+  async verifyUser(userId: Uuid) {
+    return this.request<UserDto>({
+      method: "POST",
+      path: `/api/admin/users/${userId}/verify`,
+      auth: true,
+    });
+  }
+
   async getProjectsByManager(managerId: Uuid, query?: QueryParams) {
     return this.request<PaginatedList<ProjectDto>>({
       path: `/api/projects/manager/${managerId}`,
@@ -265,6 +273,13 @@ export class ApiService {
   async getBlogPosts(projectId: Uuid, query?: QueryParams) {
     return this.request<PaginatedList<ProjectBlogPostHeaderDto>>({
       path: `/api/projects/blog-post/project/${projectId}`,
+      query,
+    });
+  }
+
+  async getBlogPostsByNgo(ngoId: Uuid, query?: QueryParams) {
+    return this.request<PaginatedList<ProjectBlogPostHeaderDto>>({
+      path: `/api/projects/blog-post/manager/${ngoId}`,
       query,
     });
   }

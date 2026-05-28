@@ -1,1 +1,4 @@
-export enum RoleEnum { NGO, DONOR }
+export enum RoleEnum {
+  DONOR = 1,
+  NGO = 2,
+}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Image, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, Text, View } from "react-native";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -371,28 +372,32 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
         ) : null}
 
         {!isLoadingInitial && !errorMessage && sections.length === 0 ? (
-          <View className="rounded-[24px] border border-[#E8ECE7] bg-white px-5 py-6">
+          <AppTourTarget targetId="tour-donation-history-intro">
+            <View className="rounded-[24px] border border-[#E8ECE7] bg-white px-5 py-6">
             <Text className="text-[18px] font-semibold text-[#202124]">Nenhuma contribuição encontrada</Text>
             <Text className="mt-2 text-[14px] leading-5 text-[#6F7A75]">
               Assim que você concluir uma doação, ela vai aparecer aqui com o status atualizado.
             </Text>
-          </View>
+            </View>
+          </AppTourTarget>
         ) : null}
 
         {!isLoadingInitial && !errorMessage
-          ? sections.map((section) => (
+          ? sections.map((section, sectionIndex) => (
               <View key={section.key} className="gap-3">
                 <Text className="px-1 text-[10px] font-semibold uppercase tracking-[1.8px] text-[#96A19C]">
                   {section.title}
                 </Text>
 
-                {section.items.map((donation) => {
+                {section.items.map((donation, donationIndex) => {
                   const accentColor = getStatusAccentColor(donation.statusDesc);
                   const imageUrl = projectImages[donation.projectId];
+                  const targetId =
+                    sectionIndex === 0 && donationIndex === 0 ? "tour-donation-history-intro" : `history-${donation.id}`;
 
                   return (
+                    <AppTourTarget key={donation.id} targetId={targetId}>
                     <Pressable
-                      key={donation.id}
                       className="rounded-[26px] border border-[#ECF0EB] bg-white px-4 py-4"
                       onPress={() => handleOpenDonation(donation)}
                       style={({ pressed }) => [
@@ -459,6 +464,7 @@ export default function DonationHistoryPage({ navigation }: DonationHistoryScree
                         </View>
                       </View>
                     </Pressable>
+                    </AppTourTarget>
                   );
                 })}
               </View>

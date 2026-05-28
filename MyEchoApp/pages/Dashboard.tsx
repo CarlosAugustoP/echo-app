@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ScrollView, Text, View } from "react-native";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { PageHeader } from "../components/common/PageHeader";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -248,19 +249,31 @@ export default function DashboardPage({}: DashboardScreenProps) {
           description="Acompanhe rapidamente a evolucao das suas contribuicoes e o impacto que elas estao gerando."
         />
 
-        {isLoadingSummary ? <DashboardSummarySkeleton /> : null}
-
-        {!isLoadingSummary && summaryErrorMessage ? (
-          <CardErrorState title="Nao foi possivel carregar o resumo" message={summaryErrorMessage} />
+        {isLoadingSummary ? (
+          <AppTourTarget targetId="tour-dashboard-summary">
+            <DashboardSummarySkeleton />
+          </AppTourTarget>
         ) : null}
 
-        {!isLoadingSummary && !summaryErrorMessage && summary ? <ContributionSummaryCard summary={summary} /> : null}
+        {!isLoadingSummary && summaryErrorMessage ? (
+          <AppTourTarget targetId="tour-dashboard-summary">
+            <CardErrorState title="Nao foi possivel carregar o resumo" message={summaryErrorMessage} />
+          </AppTourTarget>
+        ) : null}
+
+        {!isLoadingSummary && !summaryErrorMessage && summary ? (
+          <AppTourTarget targetId="tour-dashboard-summary">
+            <ContributionSummaryCard summary={summary} />
+          </AppTourTarget>
+        ) : null}
 
         {!isLoadingSummary && !summaryErrorMessage && !summary ? (
-          <CardEmptyState
-            title="Sem dados por enquanto"
-            message="Assim que novas contribuicoes forem registradas, o resumo aparecera aqui."
-          />
+          <AppTourTarget targetId="tour-dashboard-summary">
+            <CardEmptyState
+              title="Sem dados por enquanto"
+              message="Assim que novas contribuicoes forem registradas, o resumo aparecera aqui."
+            />
+          </AppTourTarget>
         ) : null}
 
         {isLoadingImpactByRegion ? <RegionImpactSkeleton /> : null}

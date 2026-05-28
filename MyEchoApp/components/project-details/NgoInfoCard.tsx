@@ -1,10 +1,14 @@
 import { Image, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
+import { VerificationBadge } from "../common/VerificationBadge";
+
 type NgoInfoCardProps = {
   name: string;
   description: string;
   imageUrl?: string | null;
+  verifiedAt?: string | null;
+  isVerified?: boolean;
 };
 
 function NgoAvatar({ imageUrl }: { imageUrl?: string | null }) {
@@ -38,7 +42,7 @@ function NgoCardDecoration() {
   );
 }
 
-export function NgoInfoCard({ name, description, imageUrl }: NgoInfoCardProps) {
+export function NgoInfoCard({ name, description, imageUrl, verifiedAt, isVerified }: NgoInfoCardProps) {
   return (
     <View className="overflow-hidden rounded-[18px] bg-[#064E3B] px-[28px] py-[24px]">
       <NgoCardDecoration />
@@ -50,9 +54,13 @@ export function NgoInfoCard({ name, description, imageUrl }: NgoInfoCardProps) {
 
         <View className="ml-[14px]">
           <Text className="text-[18px] font-semibold leading-6 text-white">{name}</Text>
-          <Text className="mt-[2px] text-[11px] font-medium uppercase tracking-[1.6px] text-[#B9E98D]">
-            Verificada pela Echo
-          </Text>
+          <View className="mt-[6px]">
+            <VerificationBadge
+              isVerified={isVerified}
+              verifiedAt={verifiedAt}
+              verifiedLabel="Verificada pela Echo"
+            />
+          </View>
         </View>
       </View>
 

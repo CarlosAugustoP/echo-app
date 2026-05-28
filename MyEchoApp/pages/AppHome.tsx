@@ -3,6 +3,7 @@ import { ImageBackground, Pressable, ScrollView, Text, View } from "react-native
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { AdminHomeContent } from "../components/home/AdminHomeContent";
 import { ImpactSummaryCard } from "../components/home/ImpactSummaryCard";
@@ -15,6 +16,7 @@ import { AppHomeScreenProps } from "../navigation/types";
 import { ApiServiceError } from "../services/ApiService";
 import { apiClient } from "../services/apiClient";
 import { signOutSession } from "../services/session";
+import { startAppTour, useAppTourStore } from "../stores/appTourStore";
 import { setCurrentUser, useUserStore } from "../stores/userStore";
 import type { DonationDistributionDto, ProjectBlogPostHeaderDto, ProjectHeaderDto } from "../types/api";
 import { isAdminUserRole, isNgoUserRole } from "../utils/userRoles";
@@ -111,6 +113,7 @@ function buildContributionMix(distribution: DonationDistributionDto | null) {
 
 export default function AppHomePage({ navigation }: AppHomeScreenProps) {
   const { currentUser } = useUserStore();
+  const { active: isTourActive } = useAppTourStore();
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [isLoadingHomeData, setIsLoadingHomeData] = useState(true);
   const [featuredProjects, setFeaturedProjects] = useState<ProjectData[]>([]);
@@ -155,6 +158,16 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
       isMounted = false;
     };
   }, [currentUser, navigation]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    if (currentUser.isFirstAccess && !isTourActive) {
+      startAppTour();
+    }
+  }, [currentUser, isTourActive]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -282,12 +295,14 @@ export default function AppHomePage({ navigation }: AppHomeScreenProps) {
           </View>
         </View>
 
+        <AppTourTarget targetId="tour-donor-home-hero">
         <ImpactSummaryCard
           impactedLives={impactStats[0].value}
           helper={impactStats[0].helper}
           description="Suas contribuições mensais levaram alimentação e educação sustentável para famílias em toda a América do Sul."
           isLoading={isLoadingHomeData}
         />
+        </AppTourTarget>
 
         <View className="flex-row gap-3">
           <StatCard

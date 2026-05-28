@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { SkeletonBlock } from "../components/common/Skeleton";
 import { StateCard } from "../components/common/StateCard";
+import { VerificationBadge } from "../components/common/VerificationBadge";
 import { AppLayout } from "../components/layout/AppLayout";
 import type { SearchScreenProps } from "../navigation/types";
 import { apiClient } from "../services/apiClient";
+import { useUserStore } from "../stores/userStore";
 import type { ProjectHeaderDto, QueryParams, UserDto } from "../types/api";
+import { isAdminUserRole } from "../utils/userRoles";
 
 const PAGE_SIZE = 20;
 const fallbackProjectImage = require("../assets/adaptive-icon.png");
@@ -50,6 +54,14 @@ function formatNgoBio(value: string | undefined | null) {
   return normalizedValue && normalizedValue.length > 0
     ? normalizedValue
     : "Organizacao ativa na rede Echo para receber apoio e publicar projetos de impacto.";
+}
+
+function resolveVerifiedState(user: UserDto) {
+  if (typeof user.isVerified === "boolean") {
+    return user.isVerified;
+  }
+
+  return Boolean(user.verifiedAt);
 }
 
 function NgoInitialsBadge({ name }: { name: string }) {
@@ -159,12 +171,19 @@ function ProjectResultCard({
 
 function NgoResultCard({
   ngo,
+  isAdminView,
+  isVerifying,
+  onVerify,
   onPress,
 }: {
   ngo: UserDto;
+  isAdminView: boolean;
+  isVerifying: boolean;
+  onVerify: () => void;
   onPress: () => void;
 }) {
   const profilePictureUrl = normalizeImageUrl(ngo.profilePicture?.url);
+  const isVerified = resolveVerifiedState(ngo);
 
   return (
     <View
@@ -185,8 +204,15 @@ function NgoResultCard({
         )}
 
         <View className="flex-1 gap-2">
-          <View className="self-start rounded-full bg-[#EEF3FF] px-2.5 py-1">
-            <Text className="text-[9px] font-bold uppercase tracking-[1px] text-[#3E66C7]">ONG</Text>
+          <View className="flex-row flex-wrap items-center gap-2">
+            <View className="self-start rounded-full bg-[#EEF3FF] px-2.5 py-1">
+              <Text className="text-[9px] font-bold uppercase tracking-[1px] text-[#3E66C7]">ONG</Text>
+            </View>
+            <VerificationBadge
+              isVerified={ngo.isVerified}
+              verifiedAt={ngo.verifiedAt}
+              verifiedLabel="Verificada"
+            />
           </View>
 
           <Text className="text-[19px] font-semibold leading-6 text-[#202124]">{ngo.name}</Text>
@@ -209,9 +235,24 @@ function NgoResultCard({
           className="rounded-[16px] border border-[#DDE6DE] bg-[#F9FBF9] px-4 py-3"
           style={({ pressed }) => (pressed ? { opacity: 0.86 } : undefined)}
         >
-          <Text className="text-[13px] font-semibold text-[#2F7D32]">Ver projetos</Text>
+          <Text className="text-[13px] font-semibold text-[#2F7D32]">Ver perfil</Text>
         </Pressable>
       </View>
+
+      {isAdminView ? (
+        <Pressable
+          onPress={onVerify}
+          disabled={isVerified || isVerifying}
+          className={`mt-3 items-center justify-center rounded-[18px] px-4 py-3 ${
+            isVerified ? "bg-[#EAF6EC]" : isVerifying ? "bg-[#DDE9DE]" : "bg-[#2F7D32]"
+          }`}
+          style={({ pressed }) => (!isVerified && !isVerifying && pressed ? { opacity: 0.86 } : undefined)}
+        >
+          <Text className={`text-[13px] font-semibold ${isVerified ? "text-[#2F7D32]" : "text-white"}`}>
+            {isVerified ? "Usuario verificado" : isVerifying ? "Verificando..." : "Verificar usuario"}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -257,12 +298,21 @@ function NgoResultSkeleton() {
 }
 
 export default function SearchPage({ navigation }: SearchScreenProps) {
-  const [searchMode, setSearchMode] = useState<SearchMode>("project");
+  const { currentUser } = useUserStore();
+  const isAdminView = isAdminUserRole(currentUser?.role);
+  const [searchMode, setSearchMode] = useState<SearchMode>(isAdminView ? "ngo" : "project");
   const [searchValue, setSearchValue] = useState("");
   const [projectResults, setProjectResults] = useState<ProjectHeaderDto[]>([]);
   const [ngoResults, setNgoResults] = useState<UserDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [verifyingUserId, setVerifyingUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isAdminView && searchMode === "project") {
+      setSearchMode("ngo");
+    }
+  }, [isAdminView, searchMode]);
 
   useEffect(() => {
     let isMounted = true;
@@ -323,45 +373,74 @@ export default function SearchPage({ navigation }: SearchScreenProps) {
   const emptyMessage =
     searchMode === "project"
       ? "Tente outro termo para encontrar projetos publicados na plataforma."
-      : "Tente outro termo para explorar diferentes organizacoes da rede Echo.";
+      : isAdminView
+        ? "Tente outro termo para localizar ONGs e revisar o status de verificacao."
+        : "Tente outro termo para explorar diferentes organizacoes da rede Echo.";
+
+  const handleVerifyUser = async (ngo: UserDto) => {
+    try {
+      setVerifyingUserId(ngo.id);
+      const updatedUser = await apiClient.verifyUser(ngo.id);
+
+      setNgoResults((currentResults) =>
+        currentResults.map((currentNgo) => (currentNgo.id === ngo.id ? { ...currentNgo, ...updatedUser } : currentNgo)),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Nao foi possivel verificar o usuario.";
+      Alert.alert("Falha ao verificar usuario", message);
+    } finally {
+      setVerifyingUserId(null);
+    }
+  };
 
   return (
     <AppLayout headerVariant="logged-in" authFooterTab="pesquisa">
       <ScrollView className="flex-1" contentContainerClassName="gap-5 pb-10" showsVerticalScrollIndicator={false}>
         <View className="gap-2">
-          <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-[#8AA1B6]">Pesquisa guiada</Text>
+          <Text className="text-[10px] font-semibold uppercase tracking-[1.5px] text-[#8AA1B6]">
+            {isAdminView ? "Curadoria de usuarios" : "Pesquisa guiada"}
+          </Text>
 
           <View className="gap-1">
-            <Text className="text-[35px] font-semibold leading-10 text-[#202124]">Descubra</Text>
-            <Text className="text-[39px] font-semibold leading-10 text-[#2F7D32]">causas e ONGs</Text>
+            <Text className="text-[35px] font-semibold leading-10 text-[#202124]">
+              {isAdminView ? "Revise" : "Descubra"}
+            </Text>
+            <Text className="text-[39px] font-semibold leading-10 text-[#2F7D32]">
+              {isAdminView ? "ONGs da rede" : "causas e ONGs"}
+            </Text>
           </View>
 
           <Text className="max-w-[320px] text-[13px] leading-5 text-[#6F7A75]">
-            Explore projetos e organizacoes da rede Echo em uma busca unificada, com a aba de projetos aberta por padrao.
+            {isAdminView
+              ? "Busque organizacoes, confira o selo de verificacao e aprove usuarios diretamente pelo painel administrativo."
+              : "Explore projetos e organizacoes da rede Echo em uma busca unificada, com a aba de projetos aberta por padrao."}
           </Text>
         </View>
 
-        <View
-          className="rounded-[26px] border border-[#DDE8DE] bg-white px-4 py-4"
-          style={{
-            shadowColor: "#D7E3D8",
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.12,
-            shadowRadius: 22,
-            elevation: 2,
-          }}
-        >
+        <AppTourTarget targetId="tour-search-panel">
+          <View
+            className="rounded-[26px] border border-[#DDE8DE] bg-white px-4 py-4"
+            style={{
+              shadowColor: "#D7E3D8",
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.12,
+              shadowRadius: 22,
+              elevation: 2,
+            }}
+          >
           <View className="flex-row gap-3">
             <SearchModeButton
               label="Pesquisar por ONG"
               isActive={searchMode === "ngo"}
               onPress={() => setSearchMode("ngo")}
             />
-            <SearchModeButton
-              label="Pesquisar por projeto"
-              isActive={searchMode === "project"}
-              onPress={() => setSearchMode("project")}
-            />
+            {!isAdminView ? (
+              <SearchModeButton
+                label="Pesquisar por projeto"
+                isActive={searchMode === "project"}
+                onPress={() => setSearchMode("project")}
+              />
+            ) : null}
           </View>
 
           <View className="mt-4 rounded-[20px] border border-[#E9EEEA] bg-[#FCFDFC] px-4 py-2.5">
@@ -373,14 +452,17 @@ export default function SearchPage({ navigation }: SearchScreenProps) {
                 placeholder={
                   searchMode === "project"
                     ? "Buscar projetos por nome ou descricao..."
-                    : "Buscar ONGs por nome..."
+                    : isAdminView
+                      ? "Buscar ONGs para verificar..."
+                      : "Buscar ONGs por nome..."
                 }
                 placeholderTextColor="#A1AAA5"
                 className="flex-1 py-2 text-[14px] text-[#202124]"
               />
             </View>
           </View>
-        </View>
+          </View>
+        </AppTourTarget>
 
         <View className="flex-row items-center justify-between gap-3">
           <Text className="text-[12px] font-semibold uppercase tracking-[1.2px] text-[#8B9790]">Resultados</Text>
@@ -430,12 +512,14 @@ export default function SearchPage({ navigation }: SearchScreenProps) {
               <NgoResultCard
                 key={ngo.id}
                 ngo={ngo}
+                isAdminView={isAdminView}
+                isVerifying={verifyingUserId === ngo.id}
+                onVerify={() => {
+                  void handleVerifyUser(ngo);
+                }}
                 onPress={() =>
-                  navigation.navigate("ProjectsList", {
-                    managerId: ngo.id,
-                    ownerName: ngo.name,
-                    description: formatNgoBio(ngo.bio),
-                    readOnly: true,
+                  navigation.navigate("NgoProfile", {
+                    ngoId: ngo.id,
                     preserveSearchContext: true,
                   })
                 }

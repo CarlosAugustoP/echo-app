@@ -1121,7 +1121,13 @@ export default function ProjectDetailsPage({ navigation, route }: ProjectDetails
 
         <TransparencyProtocolDropdown contractAddress={project?.smartContractAddress} />
 
-        <NgoInfoCard name={managerName} description={managerDescription} imageUrl={managerImageUrl} />
+        <NgoInfoCard
+          name={managerName}
+          description={managerDescription}
+          imageUrl={managerImageUrl}
+          verifiedAt={manager?.verifiedAt}
+          isVerified={manager?.isVerified}
+        />
 
         {shouldShowGallerySection ? (
           <View className="gap-3">

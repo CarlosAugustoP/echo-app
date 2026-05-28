@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from "react-native";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { PageHeader } from "../components/common/PageHeader";
 import type { AuthFooterTab } from "../components/layout/AuthFooter";
@@ -185,31 +186,33 @@ export default function ProjectsListPage({ navigation, route }: ProjectsListScre
           </View>
         ) : null}
 
-        <View className="gap-4">
-          {isLoadingInitial
-            ? Array.from({ length: 4 }).map((_, index) => <ProjectCardSkeleton key={`projects-list-skeleton-${index}`} />)
-            : projectCards.length > 0
-              ? projectCards.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    title={project.title}
-                    progress={project.progress}
-                    imageUrl={project.imageUrl}
-                    hasPendingDonations={project.hasPendingDonations}
-                    onViewProject={() => navigation.navigate("ProjectDetails", { projectId: project.id })}
-                    onAllocateDonations={
-                      isManagerView
-                        ? () =>
-                            navigation.navigate("PendingProjectDonations", {
-                              projectId: project.id,
-                              projectTitle: project.title,
-                            })
-                        : undefined
-                    }
-                  />
-                ))
-              : <EmptySectionState message={emptyMessage} />}
-        </View>
+        <AppTourTarget targetId="tour-projects-list-header">
+          <View className="gap-4">
+            {isLoadingInitial
+              ? Array.from({ length: 4 }).map((_, index) => <ProjectCardSkeleton key={`projects-list-skeleton-${index}`} />)
+              : projectCards.length > 0
+                ? projectCards.map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      title={project.title}
+                      progress={project.progress}
+                      imageUrl={project.imageUrl}
+                      hasPendingDonations={project.hasPendingDonations}
+                      onViewProject={() => navigation.navigate("ProjectDetails", { projectId: project.id })}
+                      onAllocateDonations={
+                        isManagerView
+                          ? () =>
+                              navigation.navigate("PendingProjectDonations", {
+                                projectId: project.id,
+                                projectTitle: project.title,
+                              })
+                          : undefined
+                      }
+                    />
+                  ))
+                : <EmptySectionState message={emptyMessage} />}
+          </View>
+        </AppTourTarget>
 
         {isLoadingMore && !isLoadingInitial && !errorMessage ? (
           <View className="items-center justify-center py-3">

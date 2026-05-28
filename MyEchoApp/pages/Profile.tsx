@@ -16,6 +16,7 @@ import {
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
+import { AppTourTarget } from "../components/common/AppTourTarget";
 import { Button } from "../components/common/Button";
 import { AppLayout } from "../components/layout/AppLayout";
 import { SkeletonBlock } from "../components/common/Skeleton";
@@ -39,6 +40,36 @@ function formatEchoAmount(value: number | string | undefined | null) {
 
 function formatRoleLabel(role: number | undefined) {
   return getUserRoleLabel(role);
+}
+
+function isUserVerified(user?: UserDto | null) {
+  if (!user) {
+    return false;
+  }
+
+  if (typeof user.isVerified === "boolean") {
+    return user.isVerified;
+  }
+
+  return Boolean(user.verifiedAt);
+}
+
+function formatVerifiedRoleLabel(user?: UserDto | null) {
+  const roleLabel = formatRoleLabel(user?.role);
+
+  if (!isUserVerified(user)) {
+    return "";
+  }
+
+  if (roleLabel === "APOIADOR DE IMPACTO") {
+    return "APOIADOR VERIFICADO";
+  }
+
+  if (roleLabel === "PARCEIRO DE IMPACTO") {
+    return "PARCEIRO VERIFICADO";
+  }
+
+  return `${roleLabel} VERIFICADO`;
 }
 
 function formatWalletLabel(walletAddress?: string | null) {
@@ -511,6 +542,7 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
   }, [currentUser, navigation]);
 
   const user = currentUser;
+  const verifiedRoleLabel = formatVerifiedRoleLabel(user);
 
   const openEditor = (target: EditTarget) => {
     setSaveError("");
@@ -640,7 +672,8 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
     <AppLayout headerVariant="logged-in" authFooterTab="perfil">
       <ScrollView className="flex-1" contentContainerClassName="gap-6 pb-10" showsVerticalScrollIndicator={false}>
         {!isLoading ? (
-          <View className="items-center gap-5 pt-1">
+          <AppTourTarget targetId="tour-profile-identity">
+            <View className="items-center gap-5 pt-1">
             <View className="relative">
               <View
                 className="h-[156px] w-[156px] overflow-hidden rounded-full border-[6px] border-white bg-[#E7EEE7]"
@@ -673,12 +706,14 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
                 </Text>
                 <PencilAction onPress={() => openEditor("name")} small />
               </View>
+              {verifiedRoleLabel ? (
               <View className="flex-row items-center gap-2">
-                <Ionicons name="shield-checkmark" size={18} color="#2F7D32" />
+                <Ionicons name="shield-checkmark" size={16} color="#2F7D32" />
                 <Text className="text-[13px] font-semibold uppercase tracking-[2.3px] text-[#7A847C]">
-                  {formatRoleLabel(user?.role)}
+                  {verifiedRoleLabel}
                 </Text>
               </View>
+              ) : null}
               <View className="w-full max-w-[320px] items-center gap-3 rounded-[24px] bg-white px-4 py-4">
                 <Text className="text-center text-[14px] leading-6 text-[#66736C]">
                   {user?.bio?.trim() || "Adicione uma bio para apresentar melhor seu perfil na rede Echo."}
@@ -686,45 +721,48 @@ export default function ProfilePage({ navigation }: ProfileScreenProps) {
                 <PencilAction onPress={() => openEditor("bio")} small />
               </View>
             </View>
-          </View>
+            </View>
+          </AppTourTarget>
         ) : null}
 
         {isLoading ? (
           <View className="gap-6">
-            <View className="rounded-[28px] bg-white px-5 py-5">
-              <View className="items-center gap-5">
-                <View className="relative">
-                  <SkeletonBlock
-                    width={156}
-                    height={156}
-                    borderRadius={999}
-                    style={{
-                      borderWidth: 6,
-                      borderColor: "#FFFFFF",
-                      shadowColor: "#9FB0A1",
-                      shadowOffset: { width: 0, height: 18 },
-                      shadowOpacity: 0.22,
-                      shadowRadius: 30,
-                      elevation: 8,
-                    }}
-                  />
-                  <View className="absolute bottom-[10px] right-[-2px]">
-                    <SkeletonBlock width={52} height={52} borderRadius={999} />
+            <AppTourTarget targetId="tour-profile-identity">
+              <View className="rounded-[28px] bg-white px-5 py-5">
+                <View className="items-center gap-5">
+                  <View className="relative">
+                    <SkeletonBlock
+                      width={156}
+                      height={156}
+                      borderRadius={999}
+                      style={{
+                        borderWidth: 6,
+                        borderColor: "#FFFFFF",
+                        shadowColor: "#9FB0A1",
+                        shadowOffset: { width: 0, height: 18 },
+                        shadowOpacity: 0.22,
+                        shadowRadius: 30,
+                        elevation: 8,
+                      }}
+                    />
+                    <View className="absolute bottom-[10px] right-[-2px]">
+                      <SkeletonBlock width={52} height={52} borderRadius={999} />
+                    </View>
                   </View>
-                </View>
 
-                <View className="items-center gap-3">
-                  <View className="flex-row items-center justify-center gap-3">
-                    <SkeletonBlock height={38} width={220} borderRadius={18} />
-                    <SkeletonBlock width={36} height={36} borderRadius={999} />
-                  </View>
-                  <View className="flex-row items-center gap-2">
-                    <SkeletonBlock width={18} height={18} borderRadius={999} />
-                    <SkeletonBlock height={13} width={180} borderRadius={999} />
+                  <View className="items-center gap-3">
+                    <View className="flex-row items-center justify-center gap-3">
+                      <SkeletonBlock height={38} width={220} borderRadius={18} />
+                      <SkeletonBlock width={36} height={36} borderRadius={999} />
+                    </View>
+                    <View className="flex-row items-center gap-2">
+                      <SkeletonBlock width={18} height={18} borderRadius={999} />
+                      <SkeletonBlock height={13} width={180} borderRadius={999} />
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
+            </AppTourTarget>
 
             <View className="rounded-[28px] bg-white px-5 py-5">
               <View className="gap-3">
